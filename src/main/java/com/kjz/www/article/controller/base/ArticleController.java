@@ -27,6 +27,7 @@ import com.kjz.www.article.vo.ArticleVoFont;
 import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 @Controller
 @RequestMapping("/article")
@@ -665,9 +666,9 @@ public class ArticleController {
 			    return JSON.toJSONString(data);
 		  }
 
-	@RequestMapping(value = "/insertPic", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/insertPic", method = RequestMethod.POST)
 	@ResponseBody
-	public WebResponse insertPic(HttpServletRequest request,MultipartFile file){
+	public WebResponse insertPic(HttpServletRequest request,CommonsMultipartFile file){
 		Object data = null;
 		String statusMsg = "";
 		int statusCode = 200;
