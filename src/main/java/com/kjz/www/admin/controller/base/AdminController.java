@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,7 +18,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.fastjson.JSON;
+
 import java.math.BigDecimal;
 
 import com.kjz.www.common.WebResponse;
@@ -24,8 +28,10 @@ import com.kjz.www.admin.service.IAdminService;
 import com.kjz.www.admin.domain.Admin;
 import com.kjz.www.admin.vo.AdminVo;
 import com.kjz.www.admin.vo.AdminVoFont;
-import com.kjz.www.utils.UserUtils;
-import com.kjz.www.utils.vo.UserCookie;
+import com.kjz.www.utils.AdminUtils;
+import com.kjz.www.utils.MD5Utils;
+import com.kjz.www.utils.vo.AdminCookie;
+
 
 @Controller
 @RequestMapping("/admin")
@@ -35,7 +41,10 @@ public class AdminController {
 	protected WebResponse webResponse;
 
 	@Resource
-	protected UserUtils userUtils;
+	protected AdminUtils adminUtils;
+	
+	@Resource
+	protected MD5Utils md5Utils;
 
 	@Resource
 	protected IAdminService adminService;
@@ -50,6 +59,7 @@ public class AdminController {
 		}
 	}
 
+	//增加管理员
 	@RequestMapping(value = "/addAdmin", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public WebResponse addAdmin(HttpServletRequest request, HttpServletResponse response, HttpSession session, String adminPassword, String adminAccount, String adminName, String adminSex, String adminIp, String adminRegisterTime, String adminLastLogin, String adminLoginTimes, String adminLevel) {
@@ -80,13 +90,6 @@ public class AdminController {
 		String tbStatus = "normal";
 		Admin admin = new Admin();
 
-		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
-			statusMsg = "请登录！";
-			statusCode = 201;
-			data = statusMsg;
-			return webResponse.getWebResponse(statusCode, statusMsg, data);
-		}
 
 		boolean isAdd = true;
 		return this.addOrEditAdmin(request, response, session, data, admin,adminPassword,adminAccount,adminName,adminSex,adminIp,adminRegisterTime,adminLastLogin,adminLoginTimes,adminLevel,tbStatus, isAdd);
@@ -126,8 +129,8 @@ public class AdminController {
 		AdminVo adminVo = this.adminService.getById(adminIdNumeri);
 		Admin admin = new Admin();
 		BeanUtils.copyProperties(adminVo, admin);
-		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
+		AdminCookie adminCookie = this.adminUtils.getLoginAdmin(request, response, session);
+		if (adminCookie == null) {
 			statusMsg = "请登录！";
 			statusCode = 201;
 			data = statusMsg;
@@ -148,7 +151,9 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
 				statusCode = 201;
 				return webResponse.getWebResponse(statusCode, statusMsg, data);
 			} 
-			admin.setAdminPassword(adminPassword);
+			//加密密码
+			String pwd=this.md5Utils.md5Hex(adminPassword);
+			admin.setAdminPassword(pwd);
 		}
 		if (adminAccount != null && !("".equals(adminAccount.trim()))) {
 			if(adminAccount.length() > 100) {
@@ -376,8 +381,8 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
 		String statusMsg = "";
 		int statusCode = 200;
 		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
-		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
+		AdminCookie adminCookie = this.adminUtils.getLoginAdmin(request, response, session);
+		if (adminCookie == null) {
 			statusMsg = "请登录！";
 			statusCode = 201;
 			data = statusMsg;
@@ -447,5 +452,48 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
 		return webResponse.getWebResponse(statusMsg, data);
 	}
 
+	//管理员登陆
+    @RequestMapping(value = "/login", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse login(HttpServletRequest request, HttpServletResponse response, HttpSession session,String adminaccount,String password) throws Exception{
+        String statusMsg = "";
+        Integer statusCode = 200;
+        LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+        condition.put("admin_account='"+adminaccount+ "'", "");
+        AdminVo adminVo = this.adminService.getOne(condition);
+        Object data = null;
+        data=adminVo;
+        Map<String, String> resultMap = new HashMap<String, String>();
+        if (adminaccount.length() > 100 || password.length() > 100 ) {
+            statusMsg = " 参数长度过长错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        //若数据库有此管理员
+        if(adminVo!=null) {
+        	
+        	String pwd=this.md5Utils.encodeByMd5(password);//前端输入的密码值
+        	
+            if(pwd.equals(adminVo.getAdminPassword())) {
+                statusMsg = "登录成功！！！";
+                this.adminUtils.putAdminInSession(request,response,session,adminVo);
+            }
+        }else {
+            statusMsg = "登录失败";
+        }
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+    }
+    
+    //管理员登陆注销
+  	@RequestMapping(value = "/exitAdmin", produces = "application/json;charset=UTF-8")
+  	@ResponseBody
+  	public WebResponse exitAdmin(HttpServletRequest request, HttpServletResponse response, HttpSession session,String nickname,String password) {
+  		String statusMsg = "";
+  		Integer statusCode = 200;
+  		Object data = null;
+  		statusMsg="注销成功！";
+  		session.removeAttribute("admin");
+  		return webResponse.getWebResponse(statusCode, statusMsg, data);
+  	}
 }
 

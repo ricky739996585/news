@@ -1,12 +1,16 @@
 
 package com.kjz.www.user.controller.base;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.aliyun.oss.OSSClient;
 import com.kjz.www.utils.MD5Utils;
+import com.kjz.www.utils.OSSUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.BeanUtils;
@@ -21,6 +25,8 @@ import com.kjz.www.user.vo.UserVo;
 import com.kjz.www.user.vo.UserVoFont;
 import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 @Controller
 @RequestMapping("/user")

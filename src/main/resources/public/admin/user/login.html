@@ -3,15 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <form action="/user/login" type="post">
-        姓名：<input id="nickname" type="text" name="nickname" />
-        <p></p>
-        密码：<input id="password" type="password" name="password" />
-        <p></p>
-        <input type="submit">
-    </form>
 </head>
 <body>
+<form type="POST" enctype="multipart/form-data" id="Form1">
 
+    文件1：<input type="file" name="file" />
+    <p></p>
+
+    <input type="button" onclick="uploadPic(123)" value="提交">
+</form>
 </body>
+<script src="/admin/js/jquery.min.js?v=2.1.4"></script>
+<script src="/admin/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/admin/js/plugins/peity/jquery.peity.min.js"></script>
+<script src="/admin/js/plugins/iCheck/icheck.min.js"></script>
+<script src="/admin/js/demo/peity-demo.min.js"></script>
+<script src="/admin/js/bootstrap-paginator.min.js"></script>
+<script src="/admin/js/bootstrap-editable.js"></script>
+<script src="/admin/js/bootstrap-table.js"></script>
+<script src="/admin/js/bootstrap-table-zh-CN.js"></script>
+<script src="/admin/js/bootstrap-table-editable.js"></script>
+<script src="/admin/js/jquery.validate.min.js"></script>
+<script src="/admin/js/tools.js"></script>
+<script src="/admin/js/kjz/user.js"></script>
+<script type="application/javascript">
+    //提交照片表单的操作，配置
+    function uploadPic(scenicId) {
+        var formData = new FormData($("#Form1")[0]);
+        $.ajax({
+            url:"/user/insertPic.do",
+            type:"POST",
+            async: false,
+            cache: false,
+            contentType: false,
+            processData: false,
+            data:formData,
+            error:function(e){
+                console.log(e);
+                },
+            success:function(data){
+                alert(123);
+            }
+
+        });
+
+    }
+</script>
 </html>
