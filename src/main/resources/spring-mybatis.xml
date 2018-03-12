@@ -60,7 +60,7 @@
 
 	<!-- Mapper接口所在包名，Spring会自动查找其下的类, 多个包可以用英文逗号，或者分号进行间隔 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.kjz.www.user.mapper, com.kjz.www.article.mapper, com.kjz.www.photo.mapper, com.kjz.www.tags.mapper" />
+		<property name="basePackage" value="com.kjz.www.user.mapper, com.kjz.www.article.mapper, com.kjz.www.photo.mapper, com.kjz.www.tags.mapper ,com.kjz.www.admin.mapper" />
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
 	</bean>
 
@@ -73,7 +73,7 @@
 	<tx:annotation-driven transaction-manager="transactionManager" />
 	<!-- 声明式事物 -->
 	<aop:config>
-		<aop:advisor pointcut="execution(* com.art.www..*.*(..))" advice-ref="txAdvice" />
+		<aop:advisor pointcut="execution(* com.kjz.www..*.*(..))" advice-ref="txAdvice" />
 	</aop:config>
 	<tx:advice id="txAdvice" transaction-manager="transactionManager">
 		<tx:attributes>

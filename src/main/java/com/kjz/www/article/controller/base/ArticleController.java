@@ -1,14 +1,14 @@
 
 package com.kjz.www.article.controller.base;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.io.IOException;
+import java.util.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.aliyun.oss.OSSClient;
+import com.kjz.www.utils.OSSUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,6 +26,7 @@ import com.kjz.www.article.vo.ArticleVo;
 import com.kjz.www.article.vo.ArticleVoFont;
 import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 @RequestMapping("/article")
@@ -468,67 +469,66 @@ public class ArticleController {
 		return JSON.toJSONString(data);
 	}
 	*/
-	
-	@RequestMapping(value = "/getAdminArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-	  @ResponseBody
-	  public String getAdminArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-	    @RequestParam(defaultValue = "1", required = false) Integer pageNo,  
-	    @RequestParam(defaultValue = "10", required = false) Integer pageSize, 
-	    @RequestParam(defaultValue = "正常", required = false) String tbStatus, 
-	    @RequestParam(required = false) String keyword, 
-	    @RequestParam(defaultValue = "article_id", required = false) String order,
-	    @RequestParam(defaultValue = "desc", required = false) String desc ) {
-	    Object data = null;
-	    String statusMsg = "";
-	    int statusCode = 200;
-	    LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
-	    UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-	    if (userCookie == null) {
-	      statusMsg = "请登录！";
-	      statusCode = 201;
-	      data = statusMsg;
-	      return JSON.toJSONString(data);
-	    }
+   @RequestMapping(value = "/getAdminArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+   @ResponseBody
+   public String getAdminArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+		@RequestParam(defaultValue = "1", required = false) Integer pageNo,
+		@RequestParam(defaultValue = "10", required = false) Integer pageSize,
+		@RequestParam(defaultValue = "正常", required = false) String tbStatus,
+		@RequestParam(required = false) String keyword,
+		@RequestParam(defaultValue = "article_id", required = false) String order,
+		@RequestParam(defaultValue = "desc", required = false) String desc ) {
+		Object data = null;
+		String statusMsg = "";
+		int statusCode = 200;
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
+		if (userCookie == null) {
+		  statusMsg = "请登录！";
+		  statusCode = 201;
+		  data = statusMsg;
+		  return JSON.toJSONString(data);
+		}
 
-	    if (tbStatus != null && tbStatus.length() > 0) {
-	      condition.put("tb_status='" + tbStatus + "'", "and");
-	    }
-	    condition.put("is_pass= '通过'","and");
-	    if (keyword != null && keyword.length() > 0) {
-	      StringBuffer buf = new StringBuffer();
-	      buf.append("(");
-	      buf.append("title like '%").append(keyword).append("%'");
-	      buf.append(" or ");
-	      buf.append("content like '%").append(keyword).append("%'");
-	      buf.append(" or ");
-	      buf.append("type_name like '%").append(keyword).append("%'");
-	      buf.append(")");
-	      condition.put(buf.toString(), "and ");
-	    }
-	    String field = null;
-	    if (condition.size() > 0) {
-	      condition.put(condition.entrySet().iterator().next().getKey(), "");
-	    }
-	    int count = this.articleService.getCount(condition, field);
-	    if (order != null && order.length() > 0 & "desc".equals(desc)) {
-	      order = order + " desc";
-	    }
-	    List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
-	    Map<Object, Object> map = new HashMap<Object, Object>();
-	    map.put("total", count);
-	    int size = list.size();
-	    if (size > 0) {
-	      map.put("list", list);
-	      data = map;
-	      statusMsg = "根据条件获取分页数据成功！！！";
-	    } else {
-	      map.put("list", list);
-	      data = map;
-	      statusCode = 202;
-	      statusMsg = "no record!!!";
-	    }
-	    return JSON.toJSONString(data);
-	  }
+		if (tbStatus != null && tbStatus.length() > 0) {
+		  condition.put("tb_status='" + tbStatus + "'", "and");
+		}
+		condition.put("is_pass= '通过'","and");
+		if (keyword != null && keyword.length() > 0) {
+		  StringBuffer buf = new StringBuffer();
+		  buf.append("(");
+		  buf.append("title like '%").append(keyword).append("%'");
+		  buf.append(" or ");
+		  buf.append("content like '%").append(keyword).append("%'");
+		  buf.append(" or ");
+		  buf.append("type_name like '%").append(keyword).append("%'");
+		  buf.append(")");
+		  condition.put(buf.toString(), "and ");
+		}
+		String field = null;
+		if (condition.size() > 0) {
+		  condition.put(condition.entrySet().iterator().next().getKey(), "");
+		}
+		int count = this.articleService.getCount(condition, field);
+		if (order != null && order.length() > 0 & "desc".equals(desc)) {
+		  order = order + " desc";
+		}
+		List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		map.put("total", count);
+		int size = list.size();
+		if (size > 0) {
+		  map.put("list", list);
+		  data = map;
+		  statusMsg = "根据条件获取分页数据成功！！！";
+		} else {
+		  map.put("list", list);
+		  data = map;
+		  statusCode = 202;
+		  statusMsg = "no record!!!";
+		}
+	return JSON.toJSONString(data);
+  }
 	  
 	//根据文章id删除
 	@RequestMapping(value = "/delArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -662,14 +662,15 @@ public class ArticleController {
 		    return JSON.toJSONString(data);
 		  }
 	
-	//获取论坛列表
+	//获取博客列表
 	@RequestMapping(value = "/getArticleBlogList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	  public String getArticleBlogList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 	    @RequestParam(defaultValue = "1", required = false) Integer pageNo,  
 		@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
-		@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
-		@RequestParam(required = false) String keyword, 
+		@RequestParam(defaultValue = "正常", required = false) String tbStatus,
+	   	String userId,
+	   	@RequestParam(required = false) String keyword,
 		//@RequestParam(defaultValue = "新闻",required = false) String typeName,
 		@RequestParam(defaultValue = "article_id", required = false) String order,
 		@RequestParam(defaultValue = "desc", required = false) String desc ) {
@@ -678,7 +679,9 @@ public class ArticleController {
 		int statusCode = 200;
 		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
 		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		
+		if (userId != null && userId.length() > 0) {
+			condition.put("user_id='" + userId + "'", "and");
+		}
 		if (tbStatus != null && tbStatus.length() > 0) {
 		  condition.put("tb_status='" + tbStatus + "'", "and");
 		}
@@ -720,6 +723,33 @@ public class ArticleController {
 		    }
 		    return JSON.toJSONString(data);
 		  }
+
+	@RequestMapping(value = "/insertPic", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse insertPic(HttpServletRequest request,MultipartFile file){
+		Object data = null;
+		String statusMsg = "";
+		int statusCode = 200;
+		if(file==null){
+			statusMsg = "文件为空！";
+			statusCode=201;
+			return webResponse.getWebResponse(statusCode,statusMsg, data);
+		}
+		String fileName= UUID.randomUUID().toString()+file.getName();
+		String url="";
+		//进行cos对象上传操作
+		OSSUtils utils=new OSSUtils();
+		OSSClient ossClient=utils.createCilent();
+		try {
+			url=utils.upload(fileName,file.getInputStream(),ossClient);
+			statusMsg="上传成功！";
+			data=url;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return webResponse.getWebResponse(statusCode,statusMsg, data);
+	}
+
 
 	
 }
