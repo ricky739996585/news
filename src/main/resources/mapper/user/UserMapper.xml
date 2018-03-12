@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kjz.www.user.mapper.IUserMapper">
+	<resultMap id="baseResultMap" type="com.kjz.www.user.domain.User">
+		<id column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="nickname" jdbcType="CHAR" property="nickname" />
+		<result column="password" jdbcType="CHAR" property="password" />
+		<result column="email" jdbcType="CHAR" property="email" />
+		<result column="phone_number" jdbcType="CHAR" property="phoneNumber" />
+		<result column="salt" jdbcType="CHAR" property="salt" />
+		<result column="level" jdbcType="CHAR" property="level" />
+		<result column="head_img" jdbcType="CHAR" property="headImg" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
+	</resultMap>
+	<resultMap id="voResultMap" type="com.kjz.www.user.vo.UserVo">
+		<id column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="nickname" jdbcType="CHAR" property="nickname" />
+		<result column="password" jdbcType="CHAR" property="password" />
+		<result column="email" jdbcType="CHAR" property="email" />
+		<result column="phone_number" jdbcType="CHAR" property="phoneNumber" />
+		<result column="salt" jdbcType="CHAR" property="salt" />
+		<result column="level" jdbcType="CHAR" property="level" />
+		<result column="head_img" jdbcType="CHAR" property="headImg" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
+	</resultMap>
+	<sql id="baseColumnList">
+user_id,nickname,password,email,phone_number,salt,level,head_img,create_time,modify_time,tb_status	</sql>
+	<sql id="voColumnList">
+user_id,nickname,password,email,phone_number,salt,level,head_img,create_time,modify_time,tb_status	</sql>
+		<insert id="insert" useGeneratedKeys="true" keyProperty="entity.userId">
+		INSERT INTO ${tableName} (
+		nickname, password, email, phone_number, salt, level, head_img
+		) VALUES (
+		#{entity.nickname}, #{entity.password}, #{entity.email}, #{entity.phoneNumber}, #{entity.salt}, #{entity.level}, #{entity.headImg}
+		)	</insert>
+		<insert id="insertByBatch" parameterType="java.util.List">
+		INSERT INTO ${tableName} (
+		nickname, password, email, phone_number, salt, level, head_img
+		) VALUES 
+		<foreach collection="list" item="entity" index="index" separator=",">
+			(#{entity.nickname}, #{entity.password}, #{entity.email}, #{entity.phoneNumber}, #{entity.salt}, #{entity.level}, #{entity.headImg})
+		</foreach>
+	</insert>
+		<update id="update">
+		UPDATE ${tableName} SET 
+		nickname=#{entity.nickname}, password=#{entity.password}, email=#{entity.email}, phone_number=#{entity.phoneNumber}, salt=#{entity.salt}, level=#{entity.level}, head_img=#{entity.headImg}, tb_status=#{entity.tbStatus}
+		 WHERE 
+		user_id = #{entity.userId}
+
+	</update>
+	<select id="getById" parameterType="java.lang.Integer" resultMap="voResultMap">
+		select
+		<include refid="voColumnList" />
+		from ${tableName} 
+		where user_id = #{id}
+	</select>
+	<select id="getOne" parameterType="java.util.Map" resultMap="voResultMap">
+		select
+		<if test="field == null">
+			<include refid="voColumnList" />
+		</if>
+		<if test="field != null">
+			${field}
+		</if>
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		limit 1;
+	</select>
+	<select id="getCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select
+		count(user_id)
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+	</select>
+	<!-- 这部分为根据传递参数，自动生成SQL -->
+	<select id="getList" parameterType="java.util.Map" resultMap="voResultMap">
+		select
+		<if test="field == null">
+			<include refid="voColumnList" />
+		</if>
+		<if test="field != null">
+			${field}
+		</if>
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		<if test="order != null">
+			order by ${order}
+		</if>
+		<if test="limit != null">
+			<if test="offset != null">
+				limit ${offset}, ${limit}
+			</if>
+			<if test="offset == null">
+				limit ${limit}
+			</if>
+		</if>
+	</select>
+	<!-- 判断表格是否存在，如果不存在可以配合createTable使用，用于动态创建表格 -->
+	<select id="existTable" parameterType="String" resultType="java.lang.Integer">
+		select count(table_name) from information_schema.TABLES WHERE table_name=#{tableName} ;
+	</select>
+	<update id="createTable" parameterType="String">
+		<!-- 这里是创建表格的SQL，复制过来，表名作为参数传递 -->
+		<!-- create table ${tableName} (   //  表名要这样写 -->
+	</update>
+	<cache />
+</mapper>

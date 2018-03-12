@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>照片ID</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<link href="/admin/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+<link href="/admin/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+<link href="/admin/css/plugins/iCheck/custom.css" rel="stylesheet">
+<link href="/admin/css/animate.min.css" rel="stylesheet">
+<link href="/admin/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>添加照片ID</h5>
+					</div>
+					<div class="ibox-content">
+						<form id="photo" role="form" action="/photo/addOrEditPhoto" method="post">
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户ID：</label>
+                                		<div class="col-sm-8"><input type="text" id="userId" name="userId" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">照片名称：</label>
+                                		<div class="col-sm-8"><input type="text" id="photoName" name="photoName" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">照片路径：</label>
+                                		<div class="col-sm-8"><input type="text" id="photoSrc" name="photoSrc" size="30" class="form-control"  ></div>
+                            		</div>
+                            	</div>
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">照片描述：</label>
+                                		<div class="col-sm-8"><input type="text" id="photoDescription" name="photoDescription" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">相册类型名：</label>
+                                		<div class="col-sm-8"><input type="text" id="photoTypeName" name="photoTypeName" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">状态：</label>
+                                		<div class="col-sm-8"><select id="tbStatus" name="tbStatus" class="form-control" disabled ><option value ="正常">正常</option><option value ="删除">删除</option></select></div>
+                            		</div>
+                            	</div>
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">创建时间：</label>
+                                		<div class="col-sm-8"><input type="text" id="createTime" size="30" class="form-control" disabled ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">修改时间：</label>
+                                		<div class="col-sm-8"><input type="text" id="modifyTime" size="30" class="form-control" disabled ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                            			<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit">添加</button>
+                            			<input type="hidden" id="photoId" name="photoId" value="" >
+									</div>
+                            	</div>
+                        </form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/admin/js/jquery.min.js?v=2.1.4"></script>
+	<script src="/admin/js/bootstrap.min.js?v=3.3.6"></script>
+	<script src="/admin/js/plugins/peity/jquery.peity.min.js"></script>
+	<script src="/admin/js/plugins/iCheck/icheck.min.js"></script>
+	<script src="/admin/js/demo/peity-demo.min.js"></script>
+	<script src="/admin/js/bootstrap-paginator.min.js"></script>
+	<script src="/admin/js/bootstrap-editable.js"></script>
+	<script src="/admin/js/bootstrap-table.js"></script>
+	<script src="/admin/js/bootstrap-table-zh-CN.js"></script>
+	<script src="/admin/js/bootstrap-table-editable.js"></script>
+	<script src="/admin/js/jquery.validate.min.js"></script>
+	<script src="/admin/js/tools.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			getById();
+		});
+		function getById() {
+			var photoId = getUrlParam("photoId");
+			if (photoId == null || photoId.length == 0) {
+				return false;
+			} else {
+				$("#status").attr("disabled",false);
+			}
+			$.ajax({
+				url : "/photo/getPhotoById",
+				type : "post",
+				data : {
+					"photoId" : photoId
+				},
+				success : function(data) {
+					if (data.statusCode == "200") {
+						$("#photoId").val(data.data.photoId);
+						$("#userId").val(data.data.userId);
+						$("#photoName").val(data.data.photoName);
+						$("#photoSrc").val(data.data.photoSrc);
+						$("#photoDescription").val(data.data.photoDescription);
+						$("#photoTypeName").val(data.data.photoTypeName);
+						$("#createTime").val(data.data.createTime);
+						$("#modifyTime").val(data.data.modifyTime);
+						$("#tbStatus").val(data.data.tbStatus);
+
+					}
+				}
+			})
+		}
+				$('#photo').validate({
+			rules: {
+				mobile: {
+					required: true,
+					mobile: true
+				},
+				userId: {
+					required: true,
+				},
+				photoName: {
+					required: true,
+				},
+				photoSrc: {
+					required: true,
+				},
+				photoDescription: {
+					required: true,
+				},
+				photoTypeName: {
+					required: true,
+				},
+			},
+			messages: {
+				mobile:{
+					required:"手机号码不能为空",
+					mobile:"请输入正确格式的手机号码"
+				},
+				userId: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				photoName: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				photoSrc: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				photoDescription: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				photoTypeName: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+
+			},
+			errorPlacement: function(error, element) {  
+			    error.appendTo(element.parent());  
+			},
+			onfocusout:function(element){
+				$(element).valid();
+			},
+			submitHandler: function (form) {
+				addToDB($('#photo').attr("action"), $('#photo').serialize());
+				return false;
+			}
+		});
+		$.validator.addMethod("mobile", function(value, element, params){
+			var mobileReg=/^0?(13|14|15|17|18)[0-9]{9}$/;
+			return this.optional(element)||(mobileReg.test(value)); 
+		},"请输入正确格式的手机号码");
+
+	</script>
+</body>
+</html>
+

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户编号</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<link href="/admin/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+<link href="/admin/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+<link href="/admin/css/plugins/iCheck/custom.css" rel="stylesheet">
+<link href="/admin/css/animate.min.css" rel="stylesheet">
+<link href="/admin/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>添加用户编号</h5>
+					</div>
+					<div class="ibox-content">
+						<form id="user" role="form" action="/kjz/user/addOrEditUser" method="post">
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户昵称：</label>
+                                		<div class="col-sm-8"><input type="text" id="nickname" name="nickname" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户密码：</label>
+                                		<div class="col-sm-8"><input type="text" id="password" name="password" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户邮箱：</label>
+                                		<div class="col-sm-8"><input type="text" id="email" name="email" size="30" class="form-control"  ></div>
+                            		</div>
+                            	</div>
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户电话：</label>
+                                		<div class="col-sm-8"><input type="text" id="phoneNumber" name="phoneNumber" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">调味盐：</label>
+                                		<div class="col-sm-8"><input type="text" id="salt" name="salt" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户等级：</label>
+                                		<div class="col-sm-8"><input type="text" id="level" name="level" size="30" class="form-control"  ></div>
+                            		</div>
+                            	</div>
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户头像：</label>
+                                		<div class="col-sm-8"><input type="text" id="headImg" name="headImg" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">状态：</label>
+                                		<div class="col-sm-8"><select id="tbStatus" name="tbStatus" class="form-control" disabled ><option value ="正常">正常</option><option value ="删除">删除</option></select></div>
+                            		</div>
+                            	</div>
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">创建时间：</label>
+                                		<div class="col-sm-8"><input type="text" id="createTime" size="30" class="form-control" disabled ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">修改时间：</label>
+                                		<div class="col-sm-8"><input type="text" id="modifyTime" size="30" class="form-control" disabled ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                            			<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit">添加</button>
+                            			<input type="hidden" id="userId" name="userId" value="" >
+									</div>
+                            	</div>
+                        </form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/admin/js/jquery.min.js?v=2.1.4"></script>
+	<script src="/admin/js/bootstrap.min.js?v=3.3.6"></script>
+	<script src="/admin/js/plugins/peity/jquery.peity.min.js"></script>
+	<script src="/admin/js/plugins/iCheck/icheck.min.js"></script>
+	<script src="/admin/js/demo/peity-demo.min.js"></script>
+	<script src="/admin/js/bootstrap-paginator.min.js"></script>
+	<script src="/admin/js/bootstrap-editable.js"></script>
+	<script src="/admin/js/bootstrap-table.js"></script>
+	<script src="/admin/js/bootstrap-table-zh-CN.js"></script>
+	<script src="/admin/js/bootstrap-table-editable.js"></script>
+	<script src="/admin/js/jquery.validate.min.js"></script>
+	<script src="/admin/js/tools.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			getById();
+		});
+		function getById() {
+			var userId = getUrlParam("userId");
+			if (userId == null || userId.length == 0) {
+				return false;
+			} else {
+				$("#status").attr("disabled",false);
+			}
+			$.ajax({
+				url : "/kjz/user/getUserById",
+				type : "post",
+				data : {
+					"userId" : userId
+				},
+				success : function(data) {
+					if (data.statusCode == "200") {
+						$("#userId").val(data.data.userId);
+						$("#nickname").val(data.data.nickname);
+						$("#password").val(data.data.password);
+						$("#email").val(data.data.email);
+						$("#phoneNumber").val(data.data.phoneNumber);
+						$("#salt").val(data.data.salt);
+						$("#level").val(data.data.level);
+						$("#headImg").val(data.data.headImg);
+						$("#createTime").val(data.data.createTime);
+						$("#modifyTime").val(data.data.modifyTime);
+						$("#tbStatus").val(data.data.tbStatus);
+
+					}
+				}
+			})
+		}
+				$('#user').validate({
+			rules: {
+				mobile: {
+					required: true,
+					mobile: true
+				},
+				nickname: {
+					required: true,
+				},
+				password: {
+					required: true,
+				},
+				email: {
+					required: true,
+				},
+				phoneNumber: {
+					required: true,
+				},
+				salt: {
+					required: true,
+				},
+				level: {
+					required: true,
+				},
+				headImg: {
+					required: true,
+				},
+			},
+			messages: {
+				mobile:{
+					required:"手机号码不能为空",
+					mobile:"请输入正确格式的手机号码"
+				},
+				nickname: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				password: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				email: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				phoneNumber: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				salt: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				level: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				headImg: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+
+			},
+			errorPlacement: function(error, element) {  
+			    error.appendTo(element.parent());  
+			},
+			onfocusout:function(element){
+				$(element).valid();
+			},
+			submitHandler: function (form) {
+				addToDB($('#user').attr("action"), $('#user').serialize());
+				return false;
+			}
+		});
+		$.validator.addMethod("mobile", function(value, element, params){
+			var mobileReg=/^0?(13|14|15|17|18)[0-9]{9}$/;
+			return this.optional(element)||(mobileReg.test(value)); 
+		},"请输入正确格式的手机号码");
+
+	</script>
+</body>
+</html>
+

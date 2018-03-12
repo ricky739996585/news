@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评论ID/kjz_article_comment</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+	<link href="css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+    <link href="css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+    <link href="css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="css/animate.min.css" rel="stylesheet">
+    <link href="css/style.min862f.css?v=4.1.0" rel="stylesheet">
+</head>
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+		<div class="row">
+			<div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>添加</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <form id="articleComment" role="form" action="/kjz/articleComment/addOrEditArticleComment" method="post">
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户昵称：</label>
+                                		<div class="col-sm-8"><input type="text" id="userId" name="userId" size="30" class="form-control"></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">文章ID：</label>
+                                		<div class="col-sm-8"><input type="text" id="articleId" name="articleId" size="30" class="form-control"></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">评论内容：</label>
+                                		<div class="col-sm-8"><input type="text" id="commentContent" name="commentContent" size="30" class="form-control"></div>
+                            		</div>
+                            	</div>
+                            	<div class="form-group  col-md-12">
+                            		<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit">添加</button>
+								</div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>列表</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>评论ID/comment_id</th>
+                                        <th>用户昵称/user_id</th>
+                                        <th>文章ID/article_id</th>
+                                        <th>评论内容/comment_content</th>
+                                        <th>创建时间/create_time</th>
+                                        <th>修改时间/modify_time</th>
+                                        <th>状态：正常，正常；删除，删除；/tb_status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12"><ul id="pagintor"></ul></div>
+        </div>
+    </div>
+    <script src="js/jquery.min.js?v=2.1.4"></script>
+    <script src="js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="js/plugins/peity/jquery.peity.min.js"></script>
+    <script src="js/plugins/iCheck/icheck.min.js"></script>
+    <script src="js/demo/peity-demo.min.js"></script>
+    <script src="js/bootstrap-paginator.min.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/tools.js"></script>
+	<script type="text/javascript">
+		$('#articleComment').validate({
+			rules: {
+				mobile: {
+					required: true,
+					mobile: true
+				},
+				userId: {
+					required: true,
+				},
+				articleId: {
+					required: true,
+				},
+				commentContent: {
+					required: true,
+				},
+			},
+			messages: {
+				mobile:{
+					required:"手机号码不能为空",
+					mobile:"请输入正确格式的手机号码"
+				},
+				userId: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				articleId: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				commentContent: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+
+			},
+			errorPlacement: function(error, element) {  
+			    error.appendTo(element.parent());  
+			},
+			onfocusout:function(element){
+				$(element).valid();
+			},
+			submitHandler: function (form) {
+				addToDB($('#articleComment').attr("action"), $('#articleComment').serialize());
+				pageTools(1,30);
+				getList(1);
+			}
+		});
+		$.validator.addMethod("mobile", function(value, element, params){
+			var mobileReg=/^0?(13|14|15|17|18)[0-9]{9}$/;
+			return this.optional(element)||(mobileReg.test(value)); 
+		},"请输入正确格式的手机号码");
+		$(document).ready(function(){
+			pageTools(1,30);
+			getList(1);
+		});
+
+		function getList(pageNo) {
+			$.ajax({
+				url : "../articleComment/getArticleCommentList",
+				type : "post",
+				data : "pageNo=" + pageNo,
+				success : function(data) {
+					if (data.statusCode == "200") {
+						var str = '';
+						for (var i = 0; i < data.data.list.length; i++) {
+							str += '<tr>'
+									+ '<td>' + data.data.list[i].commentId + '</td>'
+									+ '<td>' + data.data.list[i].userId + '</td>'
+									+ '<td>' + data.data.list[i].articleId + '</td>'
+									+ '<td>' + data.data.list[i].commentContent + '</td>'
+									+ '<td>' + data.data.list[i].createTime + '</td>'
+									+ '<td>' + data.data.list[i].modifyTime + '</td>'
+									+ '<td>' + data.data.list[i].tbStatus + '</td>'
+									+ '</tr>';
+						}
+						$("table tbody").html(str);
+					}
+				},
+				error : function(data) {
+					alert(JSON.stringify(data));
+				}
+			})
+		}
+	</script>
+</body>
+</html>
+

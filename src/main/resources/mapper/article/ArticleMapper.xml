@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kjz.www.article.mapper.IArticleMapper">
+	<resultMap id="baseResultMap" type="com.kjz.www.article.domain.Article">
+		<id column="article_id" jdbcType="INTEGER" property="articleId" />
+		<result column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="title" jdbcType="CHAR" property="title" />
+		<result column="content" jdbcType="LONGVARCHAR" property="content" />
+		<result column="clicks" jdbcType="INTEGER" property="clicks" />
+		<result column="type_name" jdbcType="CHAR" property="typeName" />
+		<result column="is_pass" jdbcType="CHAR" property="isPass" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
+	</resultMap>
+	<resultMap id="voResultMap" type="com.kjz.www.article.vo.ArticleVo">
+		<id column="article_id" jdbcType="INTEGER" property="articleId" />
+		<result column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="title" jdbcType="CHAR" property="title" />
+		<result column="content" jdbcType="LONGVARCHAR" property="content" />
+		<result column="clicks" jdbcType="INTEGER" property="clicks" />
+		<result column="type_name" jdbcType="CHAR" property="typeName" />
+		<result column="is_pass" jdbcType="CHAR" property="isPass" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
+	</resultMap>
+	<sql id="baseColumnList">
+article_id,user_id,title,content,clicks,type_name,is_pass,create_time,modify_time,tb_status	</sql>
+	<sql id="voColumnList">
+article_id,user_id,title,content,clicks,type_name,is_pass,create_time,modify_time,tb_status	</sql>
+		<insert id="insert" useGeneratedKeys="true" keyProperty="entity.articleId">
+		INSERT INTO ${tableName} (
+		user_id, title, content, clicks, type_name, is_pass
+		) VALUES (
+		#{entity.userId}, #{entity.title}, #{entity.content}, #{entity.clicks}, #{entity.typeName}, #{entity.isPass}
+		)	</insert>
+		<insert id="insertByBatch" parameterType="java.util.List">
+		INSERT INTO ${tableName} (
+		user_id, title, content, clicks, type_name, is_pass
+		) VALUES 
+		<foreach collection="list" item="entity" index="index" separator=",">
+			(#{entity.userId}, #{entity.title}, #{entity.content}, #{entity.clicks}, #{entity.typeName}, #{entity.isPass})
+		</foreach>
+	</insert>
+		<update id="update">
+		UPDATE ${tableName} SET 
+		user_id=#{entity.userId}, title=#{entity.title}, content=#{entity.content}, clicks=#{entity.clicks}, type_name=#{entity.typeName}, is_pass=#{entity.isPass}, tb_status=#{entity.tbStatus}
+		 WHERE 
+		article_id = #{entity.articleId}
+
+	</update>
+	<select id="getById" parameterType="java.lang.Integer" resultMap="voResultMap">
+		select
+		<include refid="voColumnList" />
+		from ${tableName} 
+		where article_id = #{id}
+	</select>
+	<select id="getOne" parameterType="java.util.Map" resultMap="voResultMap">
+		select
+		<if test="field == null">
+			<include refid="voColumnList" />
+		</if>
+		<if test="field != null">
+			${field}
+		</if>
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		limit 1;
+	</select>
+	<select id="getCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select
+		count(article_id)
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+	</select>
+	<!-- 这部分为根据传递参数，自动生成SQL -->
+	<select id="getList" parameterType="java.util.Map" resultMap="voResultMap">
+		select
+		<if test="field == null">
+			<include refid="voColumnList" />
+		</if>
+		<if test="field != null">
+			${field}
+		</if>
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		<if test="order != null">
+			order by ${order}
+		</if>
+		<if test="limit != null">
+			<if test="offset != null">
+				limit ${offset}, ${limit}
+			</if>
+			<if test="offset == null">
+				limit ${limit}
+			</if>
+		</if>
+	</select>
+	<!-- 判断表格是否存在，如果不存在可以配合createTable使用，用于动态创建表格 -->
+	<select id="existTable" parameterType="String" resultType="java.lang.Integer">
+		select count(table_name) from information_schema.TABLES WHERE table_name=#{tableName} ;
+	</select>
+	<update id="createTable" parameterType="String">
+		<!-- 这里是创建表格的SQL，复制过来，表名作为参数传递 -->
+		<!-- create table ${tableName} (   //  表名要这样写 -->
+	</update>
+	<!-- 根据文章ID查找标签-->
+	<select id="getTagsByArticleId" parameterType="int" resultType="map">
+		select
+		a.*
+		from kjz_tags a
+		left join kjz_article_tags b on(a.tags_id=b.tags_id)
+		left join kjz_article c on(b.article_id=c.article_id)
+		where c.article_id=#{articleId} and c.is_pass='通过'
+	</select>
+	<!-- 根据标签ID查找文章-->
+	<select id="getArticlesByTagId" parameterType="int" resultType="map">
+		select
+		a.*
+		from kjz_article a
+		left join kjz_article_tags b on(a.article_id=b.article_id)
+		left join kjz_tags c on(b.tags_id=c.tags_id)
+		where c.tags_id=#{tagId} and a.is_pass='通过'
+	</select>
+	<cache />
+
+</mapper>

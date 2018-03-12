@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kjz.www.article.mapper.IArticleCommentMapper">
+	<resultMap id="baseResultMap" type="com.kjz.www.article.domain.ArticleComment">
+		<id column="comment_id" jdbcType="INTEGER" property="commentId" />
+		<result column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="article_id" jdbcType="INTEGER" property="articleId" />
+		<result column="comment_content" jdbcType="LONGVARCHAR" property="commentContent" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
+	</resultMap>
+	<resultMap id="voResultMap" type="com.kjz.www.article.vo.ArticleCommentVo">
+		<id column="comment_id" jdbcType="INTEGER" property="commentId" />
+		<result column="user_id" jdbcType="INTEGER" property="userId" />
+		<result column="article_id" jdbcType="INTEGER" property="articleId" />
+		<result column="comment_content" jdbcType="LONGVARCHAR" property="commentContent" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
+	</resultMap>
+	<sql id="baseColumnList">
+comment_id,user_id,article_id,comment_content,create_time,modify_time,tb_status	</sql>
+	<sql id="voColumnList">
+comment_id,user_id,article_id,comment_content,create_time,modify_time,tb_status	</sql>
+		<insert id="insert" useGeneratedKeys="true" keyProperty="entity.commentId">
+		INSERT INTO ${tableName} (
+		user_id, article_id, comment_content
+		) VALUES (
+		#{entity.userId}, #{entity.articleId}, #{entity.commentContent}
+		)	</insert>
+		<insert id="insertByBatch" parameterType="java.util.List">
+		INSERT INTO ${tableName} (
+		user_id, article_id, comment_content
+		) VALUES 
+		<foreach collection="list" item="entity" index="index" separator=",">
+			(#{entity.userId}, #{entity.articleId}, #{entity.commentContent})
+		</foreach>
+	</insert>
+		<update id="update">
+		UPDATE ${tableName} SET 
+		user_id=#{entity.userId}, article_id=#{entity.articleId}, comment_content=#{entity.commentContent}, tb_status=#{entity.tbStatus}
+		 WHERE 
+		comment_id = #{entity.commentId}
+
+	</update>
+	<select id="getById" parameterType="java.lang.Integer" resultMap="voResultMap">
+		select
+		<include refid="voColumnList" />
+		from ${tableName} 
+		where comment_id = #{id}
+	</select>
+	<select id="getOne" parameterType="java.util.Map" resultMap="voResultMap">
+		select
+		<if test="field == null">
+			<include refid="voColumnList" />
+		</if>
+		<if test="field != null">
+			${field}
+		</if>
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		limit 1;
+	</select>
+	<select id="getCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select
+		count(comment_id)
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+	</select>
+	<!-- 这部分为根据传递参数，自动生成SQL -->
+	<select id="getList" parameterType="java.util.Map" resultMap="voResultMap">
+		select
+		<if test="field == null">
+			<include refid="voColumnList" />
+		</if>
+		<if test="field != null">
+			${field}
+		</if>
+		from ${tableName} 
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		<if test="order != null">
+			order by ${order}
+		</if>
+		<if test="limit != null">
+			<if test="offset != null">
+				limit ${offset}, ${limit}
+			</if>
+			<if test="offset == null">
+				limit ${limit}
+			</if>
+		</if>
+	</select>
+	<!-- 判断表格是否存在，如果不存在可以配合createTable使用，用于动态创建表格 -->
+	<select id="existTable" parameterType="String" resultType="java.lang.Integer">
+		select count(table_name) from information_schema.TABLES WHERE table_name=#{tableName} ;
+	</select>
+	<update id="createTable" parameterType="String">
+		<!-- 这里是创建表格的SQL，复制过来，表名作为参数传递 -->
+		<!-- create table ${tableName} (   //  表名要这样写 -->
+	</update>
+	<cache />
+</mapper>

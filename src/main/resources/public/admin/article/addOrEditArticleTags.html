@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文章标签ID</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<link href="/admin/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+<link href="/admin/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+<link href="/admin/css/plugins/iCheck/custom.css" rel="stylesheet">
+<link href="/admin/css/animate.min.css" rel="stylesheet">
+<link href="/admin/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h5>添加文章标签ID</h5>
+					</div>
+					<div class="ibox-content">
+						<form id="articleTags" role="form" action="/kjz/articleTags/addOrEditArticleTags" method="post">
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">tagsId：</label>
+                                		<div class="col-sm-8"><input type="text" id="tagsId" name="tagsId" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">articleId：</label>
+                                		<div class="col-sm-8"><input type="text" id="articleId" name="articleId" size="30" class="form-control"  ></div>
+                            		</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">状态：</label>
+                                		<div class="col-sm-8"><select id="tbStatus" name="tbStatus" class="form-control" disabled ><option value ="正常">正常</option><option value ="删除">删除</option></select></div>
+                            		</div>
+                            	</div>
+                            	<div class="row">
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">创建时间：</label>
+                                		<div class="col-sm-8"><input type="text" id="createTime" size="30" class="form-control" disabled ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">修改时间：</label>
+                                		<div class="col-sm-8"><input type="text" id="modifyTime" size="30" class="form-control" disabled ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                            			<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit">添加</button>
+                            			<input type="hidden" id="articleTagsId" name="articleTagsId" value="" >
+									</div>
+                            	</div>
+                        </form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/admin/js/jquery.min.js?v=2.1.4"></script>
+	<script src="/admin/js/bootstrap.min.js?v=3.3.6"></script>
+	<script src="/admin/js/plugins/peity/jquery.peity.min.js"></script>
+	<script src="/admin/js/plugins/iCheck/icheck.min.js"></script>
+	<script src="/admin/js/demo/peity-demo.min.js"></script>
+	<script src="/admin/js/bootstrap-paginator.min.js"></script>
+	<script src="/admin/js/bootstrap-editable.js"></script>
+	<script src="/admin/js/bootstrap-table.js"></script>
+	<script src="/admin/js/bootstrap-table-zh-CN.js"></script>
+	<script src="/admin/js/bootstrap-table-editable.js"></script>
+	<script src="/admin/js/jquery.validate.min.js"></script>
+	<script src="/admin/js/tools.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			getById();
+		});
+		function getById() {
+			var articleTagsId = getUrlParam("articleTagsId");
+			if (articleTagsId == null || articleTagsId.length == 0) {
+				return false;
+			} else {
+				$("#status").attr("disabled",false);
+			}
+			$.ajax({
+				url : "/kjz/articleTags/getArticleTagsById",
+				type : "post",
+				data : {
+					"articleTagsId" : articleTagsId
+				},
+				success : function(data) {
+					if (data.statusCode == "200") {
+						$("#articleTagsId").val(data.data.articleTagsId);
+						$("#tagsId").val(data.data.tagsId);
+						$("#articleId").val(data.data.articleId);
+						$("#createTime").val(data.data.createTime);
+						$("#modifyTime").val(data.data.modifyTime);
+						$("#tbStatus").val(data.data.tbStatus);
+
+					}
+				}
+			})
+		}
+				$('#articleTags').validate({
+			rules: {
+				mobile: {
+					required: true,
+					mobile: true
+				},
+				tagsId: {
+					required: true,
+				},
+				articleId: {
+					required: true,
+				},
+			},
+			messages: {
+				mobile:{
+					required:"手机号码不能为空",
+					mobile:"请输入正确格式的手机号码"
+				},
+				tagsId: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+				articleId: {
+					required: "请自己修改验证规则，并在此输入提示内容",
+				},
+
+			},
+			errorPlacement: function(error, element) {  
+			    error.appendTo(element.parent());  
+			},
+			onfocusout:function(element){
+				$(element).valid();
+			},
+			submitHandler: function (form) {
+				addToDB($('#articleTags').attr("action"), $('#articleTags').serialize());
+				return false;
+			}
+		});
+		$.validator.addMethod("mobile", function(value, element, params){
+			var mobileReg=/^0?(13|14|15|17|18)[0-9]{9}$/;
+			return this.optional(element)||(mobileReg.test(value)); 
+		},"请输入正确格式的手机号码");
+
+	</script>
+</body>
+</html>
+
