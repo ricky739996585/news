@@ -48,6 +48,7 @@ public class MD5Utils {
         return md5Hex(password + salt).equals(new String(cs1));
     }
 
+    //无盐值：
     private static String[] hex = {"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"};
     //将明文字符中以MD5方式加密后返回可读的十六进制数字符串
     public static String encodeByMd5(String password) throws Exception{
