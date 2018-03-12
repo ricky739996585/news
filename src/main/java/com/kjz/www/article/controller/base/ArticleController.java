@@ -153,41 +153,6 @@ public class ArticleController {
 		return this.addOrEditArticle(request, response, session, data, article,userId,title,content,clicks,typeName,isPass,tbStatus, isAdd);
 	}
 
-	//刷新文章点击数
-	@RequestMapping(value = "/editArticleClicks", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
-	@ResponseBody
-	public WebResponse editArticleClicks(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId, @RequestParam(required = false) String userId, @RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) String clicks, @RequestParam(required = false) String typeName, @RequestParam(required = false) String isPass, @RequestParam(required = false) String tbStatus) {
-		Object data = null;
-		String statusMsg = "";
-		Integer statusCode = 200;
-		Map<String, String> paramMap = new HashMap<String, String>();
-		//获取articleId
-		paramMap.put("articleId", articleId);
-		data = paramMap;
-		//数据校验
-		if (articleId == null || "".equals(articleId.trim())) {
-			statusMsg = "未获得文章id参数错误！！！";
-			statusCode = 201;
-			return webResponse.getWebResponse(statusCode, statusMsg, data);
-		}
-		Integer articleIdNumeri = articleId.matches("^[0-9]*$") ? Integer.parseInt(articleId) : 0;
-		if (articleIdNumeri == 0) {
-			statusMsg = "主键不为数字错误！！！";
-			statusCode = 201;
-			return webResponse.getWebResponse(statusCode, statusMsg, data);
-		}
-		//通过articleIdNumeri查询出一个vo对象
-		ArticleVo articleVo = this.articleService.getById(articleIdNumeri);
-		//if(articleVo !=null){//若查询到的vo不为空
-		Article article = new Article();
-		BeanUtils.copyProperties(articleVo, article);
-		article.setClicks(article.getClicks()+1);
-		//}
-		boolean isAdd = false;
-		return this.addOrEditArticle(request, response, session, data, article,userId,title,content,clicks,typeName,isPass,tbStatus, isAdd);
-		//return webResponse.getWebResponse(statusCode, statusMsg, data);
-	}
-
 
 	//校验文章格式
 	private WebResponse addOrEditArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, Article article, String userId, String title, String content, String clicks, String typeName, String isPass, String tbStatus, boolean isAdd) {
@@ -293,7 +258,7 @@ public class ArticleController {
 		}
 		ArticleVo articleVo = this.articleService.getById(articleIdNumNumeri);
 		if (articleVo != null && articleVo.getArticleId() > 0) {
-			articleVo.setClicks(articleVo.getClicks()+1);
+			articleVo.setClicks(articleVo.getClicks()+1);//浏览数+1
 			data = articleVo;
 			statusMsg = "获取单条数据成功！！！";
 		} else {
@@ -303,25 +268,7 @@ public class ArticleController {
 		return webResponse.getWebResponse(statusCode, statusMsg, data);
 	}
 
-//	//查找文章（通过Tags）
-//	@RequestMapping(value = "/getArticleById", produces = "application/json;charset=UTF-8")
-//	@ResponseBody
-//	public WebResponse getArticleByTags(String Tags) {
-//		Object data = Tags;
-//		Integer statusCode = 200;
-//		String statusMsg = "";
-//	
-//		
-//		ArticleVo articleVo = this.articleService.getById(articleIdNumNumeri);
-//		if (articleVo != null && articleVo.getArticleId() > 0) {
-//			data = articleVo;
-//			statusMsg = "获取单条数据成功！！！";
-//		} else {
-//			statusCode = 202;
-//			statusMsg = "no record!!!";
-//			}
-//		return webResponse.getWebResponse(statusCode, statusMsg, data);
-//		}
+
 
 		
 	@RequestMapping(value = "/getOneArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -483,12 +430,12 @@ public class ArticleController {
 	    int statusCode = 200;
 	    LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
 	    UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-	    if (userCookie == null) {
-	      statusMsg = "请登录！";
-	      statusCode = 201;
-	      data = statusMsg;
-	      return JSON.toJSONString(data);
-	    }
+//	    if (userCookie == null) {
+//	      statusMsg = "请登录！";
+//	      statusCode = 201;
+//	      data = statusMsg;
+//	      return JSON.toJSONString(data);
+//	    }
 
 	    if (tbStatus != null && tbStatus.length() > 0) {
 	      condition.put("tb_status='" + tbStatus + "'", "and");
@@ -565,10 +512,10 @@ public class ArticleController {
 		if (tbStatus != null && tbStatus.length() > 0) {
 		  condition.put("tb_status='" + tbStatus + "'", "and");
 		}
-		
-		condition.put("is_pass= '通过'","and");//要通过审核
 		condition.put("type_name='新闻'", "and");//要新闻
-		if (keyword != null && keyword.length() > 0) {
+		condition.put("is_pass= '通过'","and");//要通过审核
+		
+		if (keyword != null && keyword.length() > 0) {//若搜索关键字不为空
 		  StringBuffer buf = new StringBuffer();
 		  buf.append("(");
 		  buf.append("title like '%").append(keyword).append("%'");
@@ -611,7 +558,6 @@ public class ArticleController {
 		@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
 		@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
 		@RequestParam(required = false) String keyword, 
-		//@RequestParam(defaultValue = "新闻",required = false) String typeName,
 		@RequestParam(defaultValue = "article_id", required = false) String order,
 		@RequestParam(defaultValue = "desc", required = false) String desc ) {
 		Object data = null;
@@ -662,65 +608,124 @@ public class ArticleController {
 		    return JSON.toJSONString(data);
 		  }
 	
-	//获取论坛列表
-	@RequestMapping(value = "/getArticleBlogList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-	@ResponseBody
-	  public String getArticleBlogList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-	    @RequestParam(defaultValue = "1", required = false) Integer pageNo,  
-		@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
-		@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
-		@RequestParam(required = false) String keyword, 
-		//@RequestParam(defaultValue = "新闻",required = false) String typeName,
-		@RequestParam(defaultValue = "article_id", required = false) String order,
-		@RequestParam(defaultValue = "desc", required = false) String desc ) {
-		Object data = null;
-		String statusMsg = "";
-		int statusCode = 200;
-		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
-		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
 		
-		if (tbStatus != null && tbStatus.length() > 0) {
-		  condition.put("tb_status='" + tbStatus + "'", "and");
-		}
-		
-		condition.put("is_pass= '通过'","and");//要通过审核
-		condition.put("type_name='博客'", "and");//要博客
-		if (keyword != null && keyword.length() > 0) {
-		  StringBuffer buf = new StringBuffer();
-		  buf.append("(");
-		  buf.append("title like '%").append(keyword).append("%'");
-		  buf.append(" or ");
-		  buf.append("content like '%").append(keyword).append("%'");
-		  buf.append(" or ");
-		  buf.append("type_name like '%").append(keyword).append("%'");
-		  buf.append(")");
-		  condition.put(buf.toString(), "and ");
-		}
-		String field = null;
-		if (condition.size() > 0) {
-		  condition.put(condition.entrySet().iterator().next().getKey(), "");
-		}
-		int count = this.articleService.getCount(condition, field);
-		if (order != null && order.length() > 0 & "desc".equals(desc)) {
-		  order = order + " desc";
-		}
-		List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
-		Map<Object, Object> map = new HashMap<Object, Object>();
-		map.put("total", count);
-		int size = list.size();
-		if (size > 0) {
-		  map.put("list", list);
-		  data = map;
-		  statusMsg = "根据条件获取分页数据成功！！！";
-		} else {
-		  map.put("list", list);
-		  data = map;
-		  statusCode = 202;
-		  statusMsg = "no record!!!";
-		    }
-		    return JSON.toJSONString(data);
-		  }
 
-	
+		//获取博客列表
+		@RequestMapping(value = "/getArticleBlogList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+		@ResponseBody
+		  public String getArticleBlogList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+		    @RequestParam(defaultValue = "1", required = false) Integer pageNo,  
+			@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
+			@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
+			@RequestParam(required = false) String keyword, 
+			@RequestParam(defaultValue = "article_id", required = false) String order,
+			@RequestParam(defaultValue = "desc", required = false) String desc ) {
+			Object data = null;
+			String statusMsg = "";
+			int statusCode = 200;
+			LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+			UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
+			
+			if (tbStatus != null && tbStatus.length() > 0) {
+			  condition.put("tb_status='" + tbStatus + "'", "and");
+			}
+			
+			condition.put("is_pass= '通过'","and");//要通过审核
+			condition.put("type_name='博客'", "and");//要博客
+			if (keyword != null && keyword.length() > 0) {
+			  StringBuffer buf = new StringBuffer();
+			  buf.append("(");
+			  buf.append("title like '%").append(keyword).append("%'");
+			  buf.append(" or ");
+			  buf.append("content like '%").append(keyword).append("%'");
+			  buf.append(" or ");
+			  buf.append("type_name like '%").append(keyword).append("%'");
+			  buf.append(")");
+			  condition.put(buf.toString(), "and ");
+			}
+			String field = null;
+			if (condition.size() > 0) {
+			  condition.put(condition.entrySet().iterator().next().getKey(), "");
+			}
+			int count = this.articleService.getCount(condition, field);
+			if (order != null && order.length() > 0 & "desc".equals(desc)) {
+			  order = order + " desc";
+			}
+			List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
+			Map<Object, Object> map = new HashMap<Object, Object>();
+			map.put("total", count);
+			int size = list.size();
+			if (size > 0) {
+			  map.put("list", list);
+			  data = map;
+			  statusMsg = "根据条件获取分页数据成功！！！";
+			} else {
+			  map.put("list", list);
+			  data = map;
+			  statusCode = 202;
+			  statusMsg = "no record!!!";
+			    }
+			    return JSON.toJSONString(data);
+			  }
+
+		//根据标签获取文章列表
+		@RequestMapping(value = "/getTagArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+		@ResponseBody
+		public String getTagArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+				@RequestParam(defaultValue = "1", required = false) Integer pageNo,  
+				@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
+				@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
+				@RequestParam(required = false) String keyword, 
+				@RequestParam(required = false) Integer tagId,
+				@RequestParam(defaultValue = "article_id", required = false) String order,
+				@RequestParam(defaultValue = "desc", required = false) String desc ) {
+			Object data = null;
+			String statusMsg = "";
+			int statusCode = 200;
+			LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+			UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
+			
+			if (tbStatus != null && tbStatus.length() > 0) {
+			  condition.put("tb_status='" + tbStatus + "'", "and");
+			}
+			condition.put("is_pass= '通过'","and");//要通过审核
+			//tag文章列表
+			List<Map<String,Object>> taglist=this.articleService.getArticlesByTagId(tagId);
+			if (keyword != null && keyword.length() > 0) {
+			  StringBuffer buf = new StringBuffer();
+			  buf.append("(");
+			  buf.append("title like '%").append(keyword).append("%'");
+			  buf.append(" or ");
+			  buf.append("content like '%").append(keyword).append("%'");
+			  buf.append(" or ");
+			  buf.append("type_name like '%").append(keyword).append("%'");
+			  buf.append(")");
+			  condition.put(buf.toString(), "and ");
+			}
+			String field = null;
+			if (condition.size() > 0) {
+			  condition.put(condition.entrySet().iterator().next().getKey(), "");
+			}
+			int count = this.articleService.getCount(condition, field);
+			if (order != null && order.length() > 0 & "desc".equals(desc)) {
+			  order = order + " desc";
+			}
+			List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
+			Map<Object, Object> map = new HashMap<Object, Object>();
+			map.put("total", count);
+			map.put("list", taglist);//tag文章列表
+			int size = list.size();
+			if (size > 0) {
+			  map.put("list", list);
+			  data = map;
+			  statusMsg = "根据条件获取分页数据成功！！！";
+			} else {
+			  map.put("list", list);
+			  data = map;
+			  statusCode = 202;
+			  statusMsg = "no record!!!";
+			    }
+			    return JSON.toJSONString(data);
+		  }
 }
 
