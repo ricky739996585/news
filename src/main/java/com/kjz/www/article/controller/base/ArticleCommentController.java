@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,7 +18,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.fastjson.JSON;
+
 import java.math.BigDecimal;
 
 import com.kjz.www.common.WebResponse;
@@ -56,6 +60,8 @@ public class ArticleCommentController {
 		Object data = null;
 		String statusMsg = "";
 		Integer statusCode = 200;
+		userId=userUtils.getUserFromSession(request, response, session).getUserId().toString();
+		
 		Map<String, String> paramMap = new HashMap<String, String>();
 		paramMap.put("userId", userId);
 		paramMap.put("articleId", articleId);
@@ -80,6 +86,17 @@ public class ArticleCommentController {
 			statusCode = 201;
 			data = statusMsg;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		//小黑屋:若用户状态为“禁止”，不允许发表评论
+		else{
+			String userTbStatus=this.userUtils.getUserFromSession(request, response, session).getTbStatus();
+			if(userTbStatus.equals("禁止"))
+			{
+				statusMsg = "您已进入黑名单，无法发表评论";
+				statusCode = 201;
+				data = statusMsg;
+				return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
+			}
 		}
 
 		boolean isAdd = true;
