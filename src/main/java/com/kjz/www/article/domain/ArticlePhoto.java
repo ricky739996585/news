@@ -1,0 +1,41 @@
+
+package com.kjz.www.article.domain;
+import java.math.BigDecimal;
+import java.util.Date;
+
+public class ArticlePhoto implements java.io.Serializable {
+	private Integer articlePhotoId; // 文章图片编号
+	private Integer articleId; // 文章编号
+	private String articlePhotoUrl; // 文章图片地址
+	private String tbStatus; // 状态：正常，正常；删除，删除；
+
+	public Integer getArticlePhotoId() {
+		return articlePhotoId;
+	}
+	public void setArticlePhotoId(Integer articlePhotoId) {
+		this.articlePhotoId = articlePhotoId;
+	}
+
+	public Integer getArticleId() {
+		return articleId;
+	}
+	public void setArticleId(Integer articleId) {
+		this.articleId = articleId;
+	}
+
+	public String getArticlePhotoUrl() {
+		return articlePhotoUrl;
+	}
+	public void setArticlePhotoUrl(String articlePhotoUrl) {
+		this.articlePhotoUrl = articlePhotoUrl;
+	}
+
+	public String getTbStatus() {
+		return tbStatus;
+	}
+	public void setTbStatus(String tbStatus) {
+		this.tbStatus = tbStatus;
+	}
+
+}
+
