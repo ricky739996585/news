@@ -87,6 +87,14 @@ public class AdminController {
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+        condition.put("admin_account='"+adminAccount+ "'", "");
+        AdminVo adminVo = this.adminService.getOne(condition);//查询是否已有此账号
+		if(adminVo!=null){
+			statusMsg = " 此账号已被占用";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
 		String tbStatus = "normal";
 		Admin admin = new Admin();
 
@@ -463,7 +471,7 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
         AdminVo adminVo = this.adminService.getOne(condition);
         Object data = null;
         data=adminVo;
-        Map<String, String> resultMap = new HashMap<String, String>();
+        //Map<String, String> resultMap = new HashMap<String, String>();
         if (adminaccount.length() > 100 || password.length() > 100 ) {
             statusMsg = " 参数长度过长错误！！！";
             statusCode = 201;
