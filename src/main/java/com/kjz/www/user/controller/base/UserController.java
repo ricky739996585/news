@@ -3,6 +3,7 @@ package com.kjz.www.user.controller.base;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
@@ -11,11 +12,14 @@ import javax.servlet.http.HttpServletResponse;
 import com.aliyun.oss.OSSClient;
 import com.kjz.www.utils.MD5Utils;
 import com.kjz.www.utils.OSSUtils;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.alibaba.fastjson.JSON;
+
 import java.math.BigDecimal;
 
 import com.kjz.www.common.WebResponse;
@@ -25,6 +29,7 @@ import com.kjz.www.user.vo.UserVo;
 import com.kjz.www.user.vo.UserVoFont;
 import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
+
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
@@ -146,6 +151,13 @@ public class UserController {
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+        condition.put("phone_number='"+phoneNumber+ "'", "");
+        if(this.userService.getOne(condition)!=null){
+        	statusMsg = " 此手机号已被注册";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
 		String tbStatus = "normal";
 		User user = new User();
 
