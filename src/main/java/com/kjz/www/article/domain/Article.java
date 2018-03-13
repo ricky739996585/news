@@ -1,13 +1,12 @@
 
 package com.kjz.www.article.domain;
-import java.math.BigDecimal;
-import java.util.Date;
 
 public class Article implements java.io.Serializable {
-	private Integer articleId; // 文章ID
-	private Integer userId; // 用户ID
+	private Integer articleId; // 文章编号
+	private Integer userId; // 用户编号
 	private String title; // 文章标题
 	private String content; // 文章内容
+	private String preContent; // 预览内容
 	private Integer clicks; // 浏览次数
 	private String typeName; // 文章类型
 	private String isPass; // 状态：未审核，未审核；通过，通过；不通过，不通过；
@@ -39,6 +38,13 @@ public class Article implements java.io.Serializable {
 	}
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public String getPreContent() {
+		return preContent;
+	}
+	public void setPreContent(String preContent) {
+		this.preContent = preContent;
 	}
 
 	public Integer getClicks() {

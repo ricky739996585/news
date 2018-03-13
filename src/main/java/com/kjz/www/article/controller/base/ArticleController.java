@@ -7,8 +7,12 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.kjz.www.utils.OSSUtils;
+import org.apache.commons.collections.map.HashedMap;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,6 +31,7 @@ import com.kjz.www.article.vo.ArticleVoFont;
 import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 @Controller
@@ -44,18 +49,18 @@ public class ArticleController {
 	//判断添加或修改
 	@RequestMapping(value = "/addOrEditArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse addOrEditArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId, @RequestParam(required = false) String userId, @RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) String clicks, @RequestParam(required = false) String typeName, @RequestParam(required = false) String isPass, @RequestParam(required = false) String tbStatus) {
+	public WebResponse addOrEditArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId, @RequestParam(required = false) String userId, @RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) String preContent, @RequestParam(required = false) String clicks, @RequestParam(required = false) String typeName, @RequestParam(required = false) String isPass, @RequestParam(required = false) String tbStatus) {
 		if (articleId == null || articleId.length() == 0) {
-			return this.addArticle(request, response, session, userId, title, content, clicks, typeName, isPass);
+			return this.addArticle(request, response, session, userId, title, content, preContent, clicks, typeName, isPass);
 		} else {
-			return this.editArticle(request, response, session, articleId, userId, title, content, clicks, typeName, isPass, tbStatus);
+			return this.editArticle(request, response, session, articleId, userId, title, content, preContent, clicks, typeName, isPass, tbStatus);
 		}
 	}
 	
 	//添加文章
 	@RequestMapping(value = "/addArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse addArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content, String clicks, String typeName, String isPass) {
+	public WebResponse addArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content, String preContent, String clicks, String typeName, String isPass) {
 		//初始化数据
 		Object data = null;
 		String statusMsg = "";
@@ -64,6 +69,7 @@ public class ArticleController {
 		paramMap.put("userId", userId);
 		paramMap.put("title", title);
 		paramMap.put("content", content);
+		paramMap.put("preContent", preContent);
 		paramMap.put("clicks", clicks);
 		paramMap.put("typeName", typeName);
 		paramMap.put("isPass", isPass);
@@ -74,7 +80,7 @@ public class ArticleController {
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
-		if (title.length() > 50 || content.length() > 65535 || typeName.length() > 50 || isPass.length() > 50) {
+		if (title.length() > 50 || content.length() > 65535 || preContent.length() > 65535 || typeName.length() > 50 || isPass.length() > 50) {
 			statusMsg = " 参数长度过长错误！！！";
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
@@ -109,13 +115,13 @@ public class ArticleController {
 
 		boolean isAdd = true;
 		//交给判断信息
-		return this.addOrEditArticle(request, response, session, data, article,userId,title,content,clicks,typeName,isPass,tbStatus, isAdd);
+		return this.addOrEditArticle(request, response, session, data, article,userId,title,content,preContent,clicks,typeName,isPass,tbStatus, isAdd);
 	}
 
 	//更改文章
 	@RequestMapping(value = "/editArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse editArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId, @RequestParam(required = false) String userId, @RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) String clicks, @RequestParam(required = false) String typeName, @RequestParam(required = false) String isPass, @RequestParam(required = false) String tbStatus) {
+	public WebResponse editArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId, @RequestParam(required = false) String userId, @RequestParam(required = false) String title, @RequestParam(required = false) String content, @RequestParam(required = false) String preContent, @RequestParam(required = false) String clicks, @RequestParam(required = false) String typeName, @RequestParam(required = false) String isPass, @RequestParam(required = false) String tbStatus) {
 		Object data = null;
 		String statusMsg = "";
 		Integer statusCode = 200;
@@ -124,6 +130,7 @@ public class ArticleController {
 		paramMap.put("userId", userId);
 		paramMap.put("title", title);
 		paramMap.put("content", content);
+		paramMap.put("preContent", preContent);
 		paramMap.put("clicks", clicks);
 		paramMap.put("typeName", typeName);
 		paramMap.put("isPass", isPass);
@@ -152,12 +159,12 @@ public class ArticleController {
 		}
 
 		boolean isAdd = false;
-		return this.addOrEditArticle(request, response, session, data, article,userId,title,content,clicks,typeName,isPass,tbStatus, isAdd);
+		return this.addOrEditArticle(request, response, session, data, article,userId,title,content,preContent,clicks,typeName,isPass,tbStatus, isAdd);
 	}
 
 
 	//校验文章格式
-	private WebResponse addOrEditArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, Article article, String userId, String title, String content, String clicks, String typeName, String isPass, String tbStatus, boolean isAdd) {
+	private WebResponse addOrEditArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, Article article, String userId, String title, String content, String preContent, String clicks, String typeName, String isPass, String tbStatus, boolean isAdd) {
 		String statusMsg = "";
 		Integer statusCode = 200;
 		Integer userIdNumeri = 0;
@@ -185,6 +192,14 @@ public class ArticleController {
 				return webResponse.getWebResponse(statusCode, statusMsg, data);
 			} 
 			article.setContent(content);
+		}
+		if (preContent != null && !("".equals(preContent.trim()))) {
+			if(preContent.length() > 65535) {
+				statusMsg = " 参数长度过长错误,preContent";
+				statusCode = 201;
+				return webResponse.getWebResponse(statusCode, statusMsg, data);
+			}
+			article.setPreContent(preContent);
 		}
 		Integer clicksNumeri = 0;
 		if (clicks != null && !("".equals(clicks.trim()))) {
@@ -313,6 +328,8 @@ public class ArticleController {
 			buf.append(" or ");
 			buf.append("content like '%").append(keyword).append("%'");
 			buf.append(" or ");
+			buf.append("pre_content like '%").append(keyword).append("%'");
+			buf.append(" or ");
 			buf.append("type_name like '%").append(keyword).append("%'");
 			buf.append(" or ");
 			buf.append("is_pass like '%").append(keyword).append("%'");
@@ -381,15 +398,19 @@ public class ArticleController {
 		}
 		condition.put("is_pass= '通过'","and");
 		if (keyword != null && keyword.length() > 0) {
-		  StringBuffer buf = new StringBuffer();
-		  buf.append("(");
-		  buf.append("title like '%").append(keyword).append("%'");
-		  buf.append(" or ");
-		  buf.append("content like '%").append(keyword).append("%'");
-		  buf.append(" or ");
-		  buf.append("type_name like '%").append(keyword).append("%'");
-		  buf.append(")");
-		  condition.put(buf.toString(), "and ");
+			StringBuffer buf = new StringBuffer();
+			buf.append("(");
+			buf.append("title like '%").append(keyword).append("%'");
+			buf.append(" or ");
+			buf.append("content like '%").append(keyword).append("%'");
+			buf.append(" or ");
+			buf.append("pre_content like '%").append(keyword).append("%'");
+			buf.append(" or ");
+			buf.append("type_name like '%").append(keyword).append("%'");
+			buf.append(" or ");
+			buf.append("is_pass like '%").append(keyword).append("%'");
+			buf.append(")");
+			condition.put(buf.toString(), "and");
 		}
 		String field = null;
 		if (condition.size() > 0) {
@@ -671,33 +692,37 @@ public class ArticleController {
 			    return JSON.toJSONString(data);
 		  }
 
-	@RequestMapping(value = "/insertPic", method = RequestMethod.POST)
+	@RequestMapping(value = "/insertPic", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse insertPic(HttpServletRequest request,@RequestParam(required=false)MultipartFile pic){
-		Object data = null;
-		String statusMsg = "";
-		int statusCode = 200;
-		if(pic==null){
-			statusMsg = "文件为空！";
-			statusCode=201;
-			return webResponse.getWebResponse(statusCode,statusMsg, data);
+	public JSONObject insertPic(HttpServletRequest request){
+		Map<String,Object> map=new HashedMap();
+		JSONArray jsonArray=new JSONArray();
+		JSONObject jsonObject=new JSONObject();
+		MultipartRequest multipartRequest= (MultipartRequest) request;
+		Iterator<String> iterator=multipartRequest.getFileNames();
+		MultipartFile multipartFile=null;
+		while (iterator.hasNext()){
+			String str = iterator.next();    //这个文件并不是原来的文件名
+			multipartFile = (MultipartFile) multipartRequest.getFile(str);
+			multipartFile.getOriginalFilename();
+			String fileName= UUID.randomUUID().toString()+multipartFile.getOriginalFilename();
+			String url="";
+			//进行cos对象上传操作
+			OSSUtils utils=new OSSUtils();
+			OSSClient ossClient=utils.createCilent();
+			try {
+				url=utils.upload(fileName,multipartFile.getInputStream(),ossClient);
+				jsonArray.add(url);
+				jsonObject.put("data",url);
+			} catch (IOException e) {
+				e.printStackTrace();
+				jsonObject.put("errno",1);
+				jsonObject.put("data","上传失败！");
+			}
 		}
-		String fileName= UUID.randomUUID().toString()+pic.getOriginalFilename();
-		String url="";
-		//进行cos对象上传操作
-		OSSUtils utils=new OSSUtils();
-		OSSClient ossClient=utils.createCilent();
-		try {
-			url=utils.upload(fileName,pic.getInputStream(),ossClient);
-			statusMsg="上传成功！";
-			data=url;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return webResponse.getWebResponse(statusCode,statusMsg, data);
+		jsonObject.put("errno",0);
+		return jsonObject;
 	}
-
-
 
 }
 
