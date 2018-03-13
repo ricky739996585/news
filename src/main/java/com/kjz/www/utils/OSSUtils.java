@@ -43,7 +43,7 @@ public class OSSUtils {
             String key = "ArticlePhoto/"+fileName;
             // 上传文件流
             ossClient.putObject("kjz-article-photo", key, inputStream);
-            url="http://oss-cn-beijing.aliyuncs.com/"+key;
+            url="http://kjz-article-photo.oss-cn-beijing.aliyuncs.com/"+key;
         } catch (OSSException oe) {
             System.out.println("Caught an OSSException, which means your request made it to OSS, "
                     + "but was rejected with an error response for some reason.");

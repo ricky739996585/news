@@ -7,7 +7,7 @@
 <body>
 <form type="POST" enctype="multipart/form-data" id="Form1">
 
-    文件1：<input type="file" name="file" />
+    文件1：<input type="file" name="pic" />
     <p></p>
 
     <input type="button" onclick="uploadPic(123)" value="提交">
@@ -31,7 +31,7 @@
     function uploadPic(scenicId) {
         var formData = new FormData($("#Form1")[0]);
         $.ajax({
-            url:"/user/insertPic.do",
+            url:"/article/insertPic.do",
             type:"POST",
             async: false,
             cache: false,
@@ -42,7 +42,7 @@
                 console.log(e);
                 },
             success:function(data){
-                alert(123);
+                console.log(formData);
             }
 
         });

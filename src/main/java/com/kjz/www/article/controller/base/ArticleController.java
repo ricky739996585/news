@@ -554,7 +554,8 @@ public class ArticleController {
 		  public String getArticleBlogList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 		    @RequestParam(defaultValue = "1", required = false) Integer pageNo,  
 			@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
-			@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
+			@RequestParam(defaultValue = "正常", required = false) String tbStatus,
+		    @RequestParam(required = false)String userId,
 			@RequestParam(required = false) String keyword, 
 			@RequestParam(defaultValue = "article_id", required = false) String order,
 			@RequestParam(defaultValue = "desc", required = false) String desc ) {
@@ -563,7 +564,11 @@ public class ArticleController {
 			int statusCode = 200;
 			LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
 			UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-			
+
+//			if (userId != null && userId.length() > 0) {
+//				condition.put("userId='" + userId + "'", "and");
+//			}
+
 			if (tbStatus != null && tbStatus.length() > 0) {
 			  condition.put("tb_status='" + tbStatus + "'", "and");
 			}
@@ -668,22 +673,22 @@ public class ArticleController {
 
 	@RequestMapping(value = "/insertPic", method = RequestMethod.POST)
 	@ResponseBody
-	public WebResponse insertPic(HttpServletRequest request,CommonsMultipartFile file){
+	public WebResponse insertPic(HttpServletRequest request,@RequestParam(required=false)MultipartFile pic){
 		Object data = null;
 		String statusMsg = "";
 		int statusCode = 200;
-		if(file==null){
+		if(pic==null){
 			statusMsg = "文件为空！";
 			statusCode=201;
 			return webResponse.getWebResponse(statusCode,statusMsg, data);
 		}
-		String fileName= UUID.randomUUID().toString()+file.getName();
+		String fileName= UUID.randomUUID().toString()+pic.getOriginalFilename();
 		String url="";
 		//进行cos对象上传操作
 		OSSUtils utils=new OSSUtils();
 		OSSClient ossClient=utils.createCilent();
 		try {
-			url=utils.upload(fileName,file.getInputStream(),ossClient);
+			url=utils.upload(fileName,pic.getInputStream(),ossClient);
 			statusMsg="上传成功！";
 			data=url;
 		} catch (IOException e) {
