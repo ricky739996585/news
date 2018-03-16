@@ -496,7 +496,7 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 		return JSON.toJSONString(data);
 	}
 
-	@RequestMapping(value = "/delUser", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/delUser", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public WebResponse delUser(int id) {
 		int num = this.userService.delBySign(id);;

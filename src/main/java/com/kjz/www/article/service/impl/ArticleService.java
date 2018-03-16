@@ -9,6 +9,7 @@ import com.kjz.www.article.domain.Article;
 import com.kjz.www.article.service.IArticleService;
 import com.kjz.www.article.vo.ArticleVo;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,11 @@ public class ArticleService extends AbstractService<Article, ArticleVo> implemen
 	@Override
 	public List<Map<String, Object>> getArticlesByTagId(Integer tagId) {
 		return articleMapper.getArticlesByTagId(tagId);
+	}
+
+	@Override
+	public List<Map<String, Object>> getArticlesInfoList(LinkedHashMap<String, String> condition, int pageNo, int pageSize, String order) {
+		return articleMapper.getArticlesInfoList(condition,pageNo,pageSize,order);
 	}
 }
 

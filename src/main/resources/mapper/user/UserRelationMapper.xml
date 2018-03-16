@@ -3,8 +3,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kjz.www.user.mapper.IUserRelationMapper">
 	<resultMap id="baseResultMap" type="com.kjz.www.user.domain.UserRelation">
-		<result column="relation_Id" jdbcType="INTEGER" property="relationId" />
-		<id column="user_id" jdbcType="INTEGER" property="userId" />
+		<id column="relation_Id" jdbcType="INTEGER" property="relationId" />
+		<result column="user_id" jdbcType="INTEGER" property="userId" />
 		<result column="follower_id" jdbcType="INTEGER" property="followerId" />
 		<result column="relation_type" jdbcType="CHAR" property="relationType" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
@@ -12,8 +12,8 @@
 		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
 	</resultMap>
 	<resultMap id="voResultMap" type="com.kjz.www.user.vo.UserRelationVo">
-		<result column="relation_Id" jdbcType="INTEGER" property="relationId" />
-		<id column="user_id" jdbcType="INTEGER" property="userId" />
+		<id column="relation_Id" jdbcType="INTEGER" property="relationId" />
+		<result column="user_id" jdbcType="INTEGER" property="userId" />
 		<result column="follower_id" jdbcType="INTEGER" property="followerId" />
 		<result column="relation_type" jdbcType="CHAR" property="relationType" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />

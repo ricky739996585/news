@@ -136,6 +136,33 @@ article_id,user_id,title,content,clicks,type_name,is_pass,create_time,modify_tim
 		left join kjz_tags c on(b.tags_id=c.tags_id)
 		where c.tags_id=#{tagId} and a.is_pass='通过'
 	</select>
+	<!-- 根据文章ID获取基本信息(如评论数、点击量)-->
+	<select id="getArticlesInfoList" resultType="map">
+		select
+			a.title,
+			a.clicks,
+			b.nickname,
+			a.create_time as createTime,
+			(select COUNT(*) from kjz_article_comment where kjz_article_comment.article_id=a.article_id) as commentNum
+			from kjz_article a left join
+			kjz_user b on(a.user_id=b.user_id)
+		<where>
+			<foreach collection="condition" index="key" item="value">
+				${value} ${key}
+			</foreach>
+		</where>
+		<if test="order != null">
+			order by ${order}
+		</if>
+		<if test="limit != null">
+			<if test="offset != null">
+				limit ${offset}, ${limit}
+			</if>
+			<if test="offset == null">
+				limit ${limit}
+			</if>
+		</if>
+	</select>
 	<cache />
 
 </mapper>
