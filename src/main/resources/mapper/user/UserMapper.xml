@@ -10,7 +10,7 @@
 		<result column="phone_number" jdbcType="CHAR" property="phoneNumber" />
 		<result column="salt" jdbcType="CHAR" property="salt" />
 		<result column="level" jdbcType="CHAR" property="level" />
-		<result column="head_img" jdbcType="CHAR" property="headImg" />
+		<result column="head_img" jdbcType="LONGVARCHAR" property="headImg" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
 		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />
@@ -23,7 +23,7 @@
 		<result column="phone_number" jdbcType="CHAR" property="phoneNumber" />
 		<result column="salt" jdbcType="CHAR" property="salt" />
 		<result column="level" jdbcType="CHAR" property="level" />
-		<result column="head_img" jdbcType="CHAR" property="headImg" />
+		<result column="head_img" jdbcType="LONGVARCHAR" property="headImg" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
 		<result column="tb_status" jdbcType="CHAR" property="tbStatus" />

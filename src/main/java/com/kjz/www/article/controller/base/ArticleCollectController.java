@@ -344,5 +344,34 @@ private WebResponse addOrEditArticleCollect(HttpServletRequest request, HttpServ
 		return webResponse.getWebResponse(statusMsg, data);
 	}
 
+	//收藏、取消收藏
+	@RequestMapping(value = "/articleCollect", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse articleCollect(String articleId,String userId) {
+		Object data = null;
+		String statusMsg = "";
+		int statusCode=200;
+		ArticleCollect articleCollect=new ArticleCollect();
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+		condition.put("articleId='" + articleId + "'", "and");
+		condition.put("userId='" + userId + "'", "");
+		ArticleCollectVo collectVo=articleCollectService.getOne(condition);
+		if (articleId == null || "".equals(articleId.trim()) || userId == null || "".equals(userId.trim())) {
+			statusMsg = " 参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		//如果已经存在记录，则只修改记录的状态
+		if(collectVo!=null){
+
+		}
+		String tbStatus = "normal";
+		articleCollect.setUserId(Integer.parseInt(userId));
+		articleCollect.setArticleId(Integer.parseInt(articleId));
+		articleCollect.setTbStatus(tbStatus);
+		articleCollectService.insert(articleCollect);
+		return webResponse.getWebResponse(statusMsg, data);
+	}
+
 }
 

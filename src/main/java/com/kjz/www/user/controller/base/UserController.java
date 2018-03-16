@@ -9,10 +9,13 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
-import com.kjz.www.utils.MD5Utils;
-import com.kjz.www.utils.OSSUtils;
+import com.kjz.www.utils.*;
 
+import org.apache.commons.collections.map.HashedMap;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.BeanUtils;
@@ -27,10 +30,10 @@ import com.kjz.www.user.service.IUserService;
 import com.kjz.www.user.domain.User;
 import com.kjz.www.user.vo.UserVo;
 import com.kjz.www.user.vo.UserVoFont;
-import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 @Controller
@@ -47,6 +50,12 @@ public class UserController {
 	protected MD5Utils md5Utils;
 
 	@Resource
+	protected EmailUtils emailUtils;
+
+	@Resource
+	protected MessageUtils messageUtils;
+
+	@Resource
 	protected IUserService userService;
 
 	@RequestMapping(value = "/addOrEditUser", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -61,17 +70,17 @@ public class UserController {
 	//登录用户
     @RequestMapping(value = "/login", produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public WebResponse login(HttpServletRequest request, HttpServletResponse response, HttpSession session,String phoneNumber,String password) {
+    public WebResponse login(HttpServletRequest request, HttpServletResponse response, HttpSession session,String phone,String password) {
         String statusMsg = "";
         Integer statusCode = 200;
         LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
-        condition.put("phone_number='" + phoneNumber + "'", "" );
+        condition.put("phone_number='" + phone + "'", "" );
         UserVo userVo = this.userService.getOne(condition);
         Object data = null;
         data=userVo;
         Map<String, String> resultMap = new HashMap<String, String>();
-        if (phoneNumber.length() > 100 || password.length() > 100 ) {
-            statusMsg = " 参数长度过长错误！！！";
+        if (phone.length() > 100 || password.length() > 100 ) {
+            statusMsg = "参数长度过长错误！！！";
             statusCode = 201;
             return webResponse.getWebResponse(statusCode, statusMsg, data);
         }
@@ -88,6 +97,88 @@ public class UserController {
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
 
+	//注册用户
+	@RequestMapping(value = "/register", produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse register(HttpServletRequest request, HttpServletResponse response, HttpSession session,String nickname,String phone,String password) {
+		Object data = null;
+		String statusMsg = "";
+		Integer statusCode = 200;
+		Map<String, String> paramMap = new HashMap<String, String>();
+		if (nickname == null || "".equals(nickname.trim()) || password == null || "".equals(password.trim())) {
+			statusMsg = "参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		if (nickname.length() > 100 || password.length() > 100) {
+			statusMsg = "参数长度过长错误！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+		condition.put("phone_number='"+phone+ "'", "");
+		if(this.userService.getOne(condition)!=null){
+			statusMsg = "手机号已被注册！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		String tbStatus = "normal";
+		User user=new User();
+		//生成一个随机数盐值
+		Random r = new Random();
+		StringBuilder sb = new StringBuilder(16);
+		sb.append(r.nextInt(99999999)).append(r.nextInt(99999999));
+		int len = sb.length();
+		if (len < 16) {
+			for (int i = 0; i < 16 - len; i++) {
+				sb.append("0");
+			}
+		}
+		String salt = sb.toString();
+		if (salt != null && !("".equals(salt.trim()))) {
+			if(salt.length() > 50) {
+				statusMsg = "参数长度过长错误,salt";
+				statusCode = 201;
+				return webResponse.getWebResponse(statusCode, statusMsg, data);
+			}
+			user.setSalt(salt);
+		}
+		if (password != null && !("".equals(password.trim()))) {
+			if(password.length() > 100) {
+				statusMsg = "参数长度过长错误,password";
+				statusCode = 201;
+				return webResponse.getWebResponse(statusCode, statusMsg, data);
+			}
+			//MD5加密密码
+			String pwd=this.md5Utils.md5Hex(password+salt);
+			//加密后翻入
+			user.setPassword(pwd);
+		}
+		if (tbStatus != null && !("".equals(tbStatus.trim()))) {
+			if(tbStatus.length() > 50) {
+				statusMsg = "参数长度过长错误,tbStatus";
+				statusCode = 201;
+				return webResponse.getWebResponse(statusCode, statusMsg, data);
+			}
+			user.setTbStatus(tbStatus);
+		}
+		user.setPhoneNumber(phone);
+		user.setNickname(nickname);
+		this.userService.insert(user);
+		if (user.getUserId() > 0) {
+			statusMsg = "成功注册！！！";
+			paramMap.put("userId",user.getUserId().toString());
+			paramMap.put("phone",user.getPhoneNumber());
+			paramMap.put("nickname",user.getNickname());
+			paramMap.put("avatar",user.getHeadImg());
+		} else {
+			statusCode = 202;
+			statusMsg = "insert false";
+		}
+		data=paramMap;
+		return webResponse.getWebResponse(statusCode, statusMsg, data);
+	}
+
     //禁用用户
 	@RequestMapping(value = "/forbid", produces = "application/json;charset=UTF-8")
 	@ResponseBody
@@ -96,7 +187,7 @@ public class UserController {
 		Integer statusCode = 200;
 		Object data = null;
 		if (userId==null ) {
-			statusMsg = " 请求参数为空！！！";
+			statusMsg = "请求参数为空！！！";
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
@@ -154,7 +245,7 @@ public class UserController {
 		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
         condition.put("phone_number='"+phoneNumber+ "'", "");
         if(this.userService.getOne(condition)!=null){
-        	statusMsg = " 此手机号已被注册";
+        	statusMsg = "此手机号已被注册";
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
         }
@@ -508,6 +599,132 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 			statusMsg = "no record!!!";
 		}
 		return webResponse.getWebResponse(statusMsg, data);
+	}
+
+	@RequestMapping(value = "/updatePassword", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse updatePassword(String userId,String nickname,String password,String code) {
+		Object data = null;
+		int statusCode = 200;
+		String statusMsg = "";
+		String valiCode="";
+		UserVo userVo=userService.getById(Integer.parseInt(userId));
+		//验证码正确
+		try{
+			if(valiCode.equals(code)){
+				User user=new User();
+				userVo.setNickname(nickname);
+				userVo.setPassword(password);
+				BeanUtils.copyProperties(userVo,user);
+				userService.update(user);
+			}else {
+				statusMsg="验证码错误！";
+			}
+		}catch (Exception e){
+			statusCode=201;
+			statusMsg="修改失败！";
+		}
+
+
+		return webResponse.getWebResponse(statusCode,statusMsg, data);
+	}
+
+	/**
+	 * 修改用户头像
+	 * @author ricky
+	 * @param request
+	 * @param userId
+	 * @param file
+	 * @return
+	 */
+	@RequestMapping(value = "/updateAvatar", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public JSONObject updateAvatar(HttpServletRequest request, String userId, MultipartFile file){
+		int statusCode = 200;
+		JSONObject jsonObject=new JSONObject();
+		String fileName=file.getOriginalFilename();
+		UserVo userVo=userService.getById(Integer.parseInt(userId));
+		//删除原先头像
+		String oldAvatarUrl=userVo.getHeadImg();
+		String oldAvatarName=oldAvatarUrl.split("http://kjz-article-photo.oss-cn-beijing.aliyuncs.com/ArticlePhoto/")[0];
+		OSSUtils utils=new OSSUtils();
+		OSSClient ossClient=utils.createCilent();
+		utils.delAvatar(oldAvatarName,ossClient);
+
+		//上传新头像,并保存到数据库
+		try{
+			String newAvatarUrl=utils.uploadAvatar(fileName,file.getInputStream(),ossClient);
+			userVo.setHeadImg(newAvatarUrl);
+			User user=new User();
+			BeanUtils.copyProperties(userVo,user);
+			userService.update(user);
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","修改成功！");
+			jsonObject.put("data","");
+		}catch (Exception e){
+			e.printStackTrace();
+			statusCode=201;
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","修改失败！");
+			jsonObject.put("data","");
+		}
+		return jsonObject;
+	}
+
+	/**
+	 * 发送邮箱验证码
+	 * @param request
+	 * @param email
+	 * @return
+	 */
+	@RequestMapping(value = "/sendEmailMsg", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public JSONObject sendEmailMsg(HttpServletRequest request, String email){
+		int statusCode = 200;
+		String statusMsg = "";
+		JSONObject jsonObject=new JSONObject();
+		String result =null;
+		try{
+			//发送短信
+			result=emailUtils.sendEmailCode(email);
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","发送成功！");
+			jsonObject.put("data",result);
+		}catch (Exception e){
+			e.printStackTrace();
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","发送失败！");
+			jsonObject.put("data",result);
+		}
+		return jsonObject;
+	}
+
+	/**
+	 * 发送短信验证码
+	 * @param request
+	 * @param phone
+	 * @return
+	 */
+	@RequestMapping(value = "/sendMessageMsg", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public JSONObject sendMessageMsg(HttpServletRequest request, String phone){
+		int statusCode = 200;
+		String statusMsg = "";
+		JSONObject jsonObject=new JSONObject();
+		String result =null;
+		try{
+			//发送短信
+			result=messageUtils.sendMsg(phone);
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","发送成功！");
+			jsonObject.put("data",result);
+		}catch (Exception e){
+			e.printStackTrace();
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","发送失败！");
+			jsonObject.put("data",result);
+		}
+		return jsonObject;
 	}
 
 }

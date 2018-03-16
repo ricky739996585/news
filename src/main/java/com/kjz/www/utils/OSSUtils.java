@@ -25,9 +25,36 @@ public class OSSUtils {
         return client;
     }
 
-    public void closeCilent(OSSClient ossClient){
+    /**
+     * 上传头像
+     * @return
+     */
+    public String uploadAvatar(String fileName,InputStream inputStream, OSSClient ossClient){
         // 关闭ossClient
-        ossClient.shutdown();
+        String url="";
+        try {
+            String key = "UserAvatar/"+fileName;
+            // 上传文件流
+            ossClient.putObject("kjz-article-photo", key, inputStream);
+            url="http://kjz-article-photo.oss-cn-beijing.aliyuncs.com/"+key;
+        } catch (OSSException oe) {
+            System.out.println("Caught an OSSException, which means your request made it to OSS, "
+                    + "but was rejected with an error response for some reason.");
+            System.out.println("Error Message: " + oe.getErrorCode());
+            System.out.println("Error Code:       " + oe.getErrorCode());
+            System.out.println("Request ID:      " + oe.getRequestId());
+            System.out.println("Host ID:           " + oe.getHostId());
+        } catch (ClientException ce) {
+            System.out.println("Caught an ClientException, which means the client encountered "
+                    + "a serious internal problem while trying to communicate with OSS, "
+                    + "such as not being able to access the network.");
+            System.out.println("Error Message: " + ce.getMessage());
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
+        }
+        return url;
     }
 
     /**
@@ -62,5 +89,37 @@ public class OSSUtils {
             }
         }
         return url;
+    }
+
+    /**
+     * 删除头像
+     * @param fileName
+     * @param ossClient
+     * @return
+     */
+    public void delAvatar(String fileName, OSSClient ossClient){
+        // 关闭ossClient
+        String url="";
+        try {
+            String key = "UserAvatar/"+fileName;
+            // 删除Object
+            ossClient.deleteObject("kjz-article-photo", key);
+        } catch (OSSException oe) {
+            System.out.println("Caught an OSSException, which means your request made it to OSS, "
+                    + "but was rejected with an error response for some reason.");
+            System.out.println("Error Message: " + oe.getErrorCode());
+            System.out.println("Error Code:       " + oe.getErrorCode());
+            System.out.println("Request ID:      " + oe.getRequestId());
+            System.out.println("Host ID:           " + oe.getHostId());
+        } catch (ClientException ce) {
+            System.out.println("Caught an ClientException, which means the client encountered "
+                    + "a serious internal problem while trying to communicate with OSS, "
+                    + "such as not being able to access the network.");
+            System.out.println("Error Message: " + ce.getMessage());
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
+        }
     }
 }
