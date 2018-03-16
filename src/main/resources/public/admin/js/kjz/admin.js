@@ -1,5 +1,5 @@
-var listURL = "/kjz/admin/getAdminAdminList";
-var editURL = "/kjz/admin/editAdmin";
+var listURL = "/admin/getAdminAdminList";
+var editURL = "/admin/editAdmin";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）

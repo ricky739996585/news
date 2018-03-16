@@ -71,7 +71,7 @@ $('#tableList').bootstrapTable({
 		}
 		,{field : "operate", title : "操作",align: "center",
 			formatter:function(value,row,index){
-				var e = '<a href="/admin/kjz/addOrEditArticle.html?articleId=' + row.articleId + '" target="_blank" >编辑</a> ';
+				var e = '<a href="/article/addOrEditArticle.html?articleId=' + row.articleId + '" target="_blank" >编辑</a> ';
 				return e;
 			}
 		}

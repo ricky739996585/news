@@ -5,7 +5,9 @@ import com.kjz.www.admin.domain.Admin;
 import com.kjz.www.admin.vo.AdminVo;
 import org.springframework.stereotype.Repository;
 
-@Repository
+import javax.annotation.Resource;
+
+//@Resource
 public interface IAdminMapper extends IOperations<Admin, AdminVo> {
 }
 

@@ -188,4 +188,16 @@ public class UserUtils {
 		}
 		return buf.toString();
 	}
+	
+	//通过userId查询用户状态,正常为true
+	public Boolean getUserStateById(Integer userId){
+		UserVo userVo=this.userService.getById(userId);
+		String tbStatus=userVo.getTbStatus();
+		if(tbStatus.equals("正常")){
+			return true;
+		}	
+		return false;
+	}
+	
+	
 }

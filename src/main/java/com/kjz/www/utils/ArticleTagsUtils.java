@@ -22,7 +22,7 @@ public class ArticleTagsUtils {
 			
 		ArticleTags articleTagsEntity=new ArticleTags();
 		articleTagsEntity.setArticleId(articleId);
-		articleTagsEntity.setArticleId(tagsIdNumeri);
+		articleTagsEntity.setTagsId(tagsIdNumeri);
 		articleTagsEntity.setTbStatus(tbStatus);
 		return articleTagsEntity;
 
