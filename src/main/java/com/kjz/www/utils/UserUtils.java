@@ -199,5 +199,9 @@ public class UserUtils {
 		return false;
 	}
 	
+	//通过userId返回一个userVo
+	public UserVo getUserById(Integer userId){
+		return this.userService.getById(userId);
+	}
 	
 }
