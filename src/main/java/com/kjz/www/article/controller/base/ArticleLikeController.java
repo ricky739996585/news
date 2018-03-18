@@ -9,6 +9,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.alibaba.fastjson.JSONObject;
+import com.kjz.www.article.domain.ArticleCollect;
+import com.kjz.www.article.vo.ArticleCollectVo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -342,6 +346,97 @@ private WebResponse addOrEditArticleLike(HttpServletRequest request, HttpServlet
 			statusMsg = "no record!!!";
 		}
 		return webResponse.getWebResponse(statusMsg, data);
+	}
+
+	/**
+	 * 功能：点赞、取消点赞文章
+	 * @author ricky
+	 * @param articleId
+	 * @param userId
+	 * @param like 点赞判断关键字：正常，取消
+	 * @return
+	 */
+	@RequestMapping(value = "/articleLike", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse articleLike(String articleId,String userId,String like) {
+		Object data = null;
+		String statusMsg = "";
+		int statusCode=200;
+		ArticleLike articleLike=new ArticleLike();
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+		condition.put("article_id='" + articleId + "'", "and");
+		condition.put("user_id='" + userId + "'", "and");
+		ArticleLikeVo articleLikeVo=articleLikeService.getOne(condition);
+		if (articleId == null || "".equals(articleId.trim()) || userId == null || "".equals(userId.trim())) {
+			statusMsg = " 参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		if (like == null || "".equals(like.trim())) {
+			statusMsg = " 参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		String tbStatus = like;
+		//如果已经存在记录，则只修改记录的状态为“取消”
+		//如果没有，则插入一条记录，并设置状态为“正常”
+		try{
+			if(articleLikeVo!=null){
+				BeanUtils.copyProperties(articleLikeVo,articleLike);
+				articleLike.setTbStatus(tbStatus);
+				articleLikeService.update(articleLike);
+			}else{
+				articleLike.setUserId(Integer.parseInt(userId));
+				articleLike.setArticleId(Integer.parseInt(articleId));
+				articleLikeService.insert(articleLike);
+			}
+			statusMsg="操作成功！！！";
+		}catch (Exception e){
+			statusCode=201;
+			statusMsg="操作失败！！！";
+		}
+		return webResponse.getWebResponse(statusCode,statusMsg, data);
+	}
+
+	/**
+	 * 根据userId获取点赞的文章列表
+	 * @author ricky
+	 * @param userId
+	 * @return
+	 */
+	@RequestMapping(value = "/getLikeArticleByUserId", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse getLikeArticleByUserId(String userId,String pageNo,String pageSize) {
+		Object data = null;
+		String statusMsg = "";
+		int statusCode=200;
+		JSONObject jsonObject=new JSONObject();
+		if (userId == null || "".equals(userId.trim())) {
+			statusMsg = " 参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+		paramMap.put("userId",userId);
+		if(null!=pageNo){
+			paramMap.put("offset",pageNo);
+		}
+		if(null!=pageSize){
+			paramMap.put("limit",pageSize);
+		}
+		//获取点赞文章列表
+		try{
+			List<Map<String,Object>> list=articleLikeService.getLikeArticleByUserId(paramMap);
+			Map<String,Object> map=articleLikeService.getLikeArticleCountByUserId(Integer.parseInt(userId)).get(0);
+			jsonObject.put("list",list);
+			jsonObject.put("total",map.get("total"));
+			statusMsg="获取成功！！！";
+			data=jsonObject;
+		}catch (Exception e){
+			statusCode=201;
+			statusMsg="获取失败！！！";
+		}
+		return webResponse.getWebResponse(statusCode,statusMsg, data);
 	}
 
 }

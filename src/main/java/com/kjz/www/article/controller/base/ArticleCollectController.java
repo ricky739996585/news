@@ -1,14 +1,19 @@
 
 package com.kjz.www.article.controller.base;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.kjz.www.article.domain.Article;
+import com.kjz.www.article.service.IArticleService;
+import com.kjz.www.article.vo.ArticleVo;
+import com.kjz.www.user.domain.User;
+import com.kjz.www.user.vo.UserVo;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,6 +44,9 @@ public class ArticleCollectController {
 
 	@Resource
 	protected IArticleCollectService articleCollectService;
+
+	@Resource
+	protected IArticleService articleService;
 
 	@RequestMapping(value = "/addOrEditArticleCollect", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
@@ -344,34 +352,119 @@ private WebResponse addOrEditArticleCollect(HttpServletRequest request, HttpServ
 		return webResponse.getWebResponse(statusMsg, data);
 	}
 
-	//收藏、取消收藏
-	@RequestMapping(value = "/articleCollect", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+
+	/**
+	 * 功能：收藏、取消收藏文章
+	 * @param articleId
+	 * @param userId
+	 * @param collect 收藏判断关键字：正常，取消
+	 * @return
+	 */
+	@RequestMapping(value = "/articleCollect", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse articleCollect(String articleId,String userId) {
+	public WebResponse articleCollect(String articleId,String userId,String collect) {
 		Object data = null;
 		String statusMsg = "";
 		int statusCode=200;
 		ArticleCollect articleCollect=new ArticleCollect();
 		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
-		condition.put("articleId='" + articleId + "'", "and");
-		condition.put("userId='" + userId + "'", "");
-		ArticleCollectVo collectVo=articleCollectService.getOne(condition);
+		condition.put("article_id='" + articleId + "'", "and");
+		condition.put("user_id='" + userId + "'", "and");
+		ArticleCollectVo articleCollectVo=articleCollectService.getOne(condition);
 		if (articleId == null || "".equals(articleId.trim()) || userId == null || "".equals(userId.trim())) {
 			statusMsg = " 参数为空错误！！！！";
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
-		//如果已经存在记录，则只修改记录的状态
-		if(collectVo!=null){
-
+		if (collect == null || "".equals(collect.trim())) {
+			statusMsg = " 参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
-		String tbStatus = "normal";
-		articleCollect.setUserId(Integer.parseInt(userId));
-		articleCollect.setArticleId(Integer.parseInt(articleId));
-		articleCollect.setTbStatus(tbStatus);
-		articleCollectService.insert(articleCollect);
-		return webResponse.getWebResponse(statusMsg, data);
+		String tbStatus = collect;
+		//如果已经存在记录，则只修改记录的状态
+		//如果没有，则插入一条记录，并设置状态为关注
+		try{
+			if(articleCollectVo!=null){
+				BeanUtils.copyProperties(articleCollectVo,articleCollect);
+				articleCollect.setTbStatus(tbStatus);
+				articleCollectService.update(articleCollect);
+			}else{
+				articleCollect.setUserId(Integer.parseInt(userId));
+				articleCollect.setArticleId(Integer.parseInt(articleId));
+				articleCollectService.insert(articleCollect);
+			}
+			statusMsg="操作成功！！！";
+		}catch (Exception e){
+			statusCode=201;
+			statusMsg="操作失败！！！";
+		}
+		return webResponse.getWebResponse(statusCode,statusMsg, data);
 	}
+
+	/**
+	 * 根据userId获取收藏文章列表
+	 * @param userId
+	 * @return
+	 */
+	@RequestMapping(value = "/getCollectArticleByUserId", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public WebResponse getCollectArticleByUserId(String userId,
+												 @RequestParam(defaultValue = "1", required = false) Integer pageNo,
+												 @RequestParam(defaultValue = "10", required = false) Integer pageSize) {
+		Object data = null;
+		String statusMsg = "";
+		int statusCode=200;
+		JSONObject jsonObject=new JSONObject();
+		if (userId == null || "".equals(userId.trim())) {
+			statusMsg = " 参数为空错误！！！！";
+			statusCode = 201;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
+		LinkedHashMap<String, String> paramMap = new LinkedHashMap<String, String>();
+		paramMap.put("user_id='" + userId + "'", "and");
+
+		//获取收藏文章列表
+		try{
+			List<ArticleCollectVo> articleCollectVoList=articleCollectService.getList(paramMap,pageNo,pageSize);
+			int total=articleCollectService.getCount(paramMap,"*");
+			List<ArticleVo> articleVoList= new LinkedList<>();
+			//获取所有文章，放入articleVoList
+			for (ArticleCollectVo articleCollectVo:articleCollectVoList){
+				LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+				condition.put("article_id='" + articleCollectVo.getArticleId() + "'", "and");
+				ArticleVo articleVo=articleService.getOne(condition);
+//				Article article=new Article();
+//				BeanUtils.copyProperties(articleVo,article);
+				articleVoList.add(articleVo);
+			}
+			//把User和Article放入Json中
+			JSONArray jsonArray=new JSONArray();
+			for(ArticleVo articleVo:articleVoList){
+				JSONObject json=new JSONObject();
+				UserVo userVo=userUtils.getUserById(articleVo.getUserId());
+				User user=new User();
+				BeanUtils.copyProperties(userVo,user);
+				Article article=new Article();
+				BeanUtils.copyProperties(articleVo,article);
+				json.put("article",article);
+				json.put("author",user.getNickname());
+				jsonArray.add(json);
+			}
+
+//			List<Map<String,Object>> list=articleCollectService.getCollectArticleByUserId(paramMap);
+//			Map<String,Object> map=articleCollectService.getCollectArticleCountByUserId(Integer.parseInt(userId)).get(0);
+			jsonObject.put("list",jsonArray);
+			jsonObject.put("total",total);
+			statusMsg="获取成功！！！";
+			data=jsonObject;
+		}catch (Exception e){
+			statusCode=201;
+			statusMsg="获取失败！！！";
+		}
+		return webResponse.getWebResponse(statusCode,statusMsg, data);
+	}
+
 
 }
 

@@ -30,7 +30,6 @@ public class OSSUtils {
      * @return
      */
     public String uploadAvatar(String fileName,InputStream inputStream, OSSClient ossClient){
-        // 关闭ossClient
         String url="";
         try {
             String key = "UserAvatar/"+fileName;
@@ -116,10 +115,6 @@ public class OSSUtils {
                     + "a serious internal problem while trying to communicate with OSS, "
                     + "such as not being able to access the network.");
             System.out.println("Error Message: " + ce.getMessage());
-        } finally {
-            if (ossClient != null) {
-                ossClient.shutdown();
-            }
         }
     }
 }

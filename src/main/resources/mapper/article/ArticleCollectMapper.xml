@@ -110,5 +110,35 @@ article_collect_id,article_id,user_id,create_time,modify_time,tb_status	</sql>
 		<!-- 这里是创建表格的SQL，复制过来，表名作为参数传递 -->
 		<!-- create table ${tableName} (   //  表名要这样写 -->
 	</update>
+	<select id="getCollectArticleByUserId" parameterType="map" resultType="map">
+		select
+			a.user_id as userId,
+			a.article_id as articleId,
+			b.title,
+			c.nickname as author,
+			b.pre_content as preContent,
+			b.clicks,
+			a.tb_status as status
+			from kjz_article_collect a
+			left join kjz_article b on(a.article_id=b.article_id)
+			left join kjz_user c on(b.user_id=c.user_id)
+			where a.user_id=${userId} and a.tb_status='正常' and b.is_pass='通过'
+			<if test="limit != null">
+				<if test="offset != null">
+					limit ${offset}, ${limit}
+				</if>
+				<if test="offset == null">
+					limit ${limit}
+				</if>
+			</if>
+	</select>
+	<select id="getCollectArticleCountByUserId" resultType="map" parameterType="int">
+		select
+			count(*) as total
+			from kjz_article_collect a
+			left join kjz_article b on(a.article_id=b.article_id)
+			left join kjz_user c on(b.user_id=c.user_id)
+			where a.user_id=#{userId} and a.tb_status='正常' and b.is_pass='通过'
+	</select>
 	<cache />
 </mapper>

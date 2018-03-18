@@ -67,7 +67,12 @@ public class UserController {
 			return this.editUser(request, response, session, userId, nickname, password, email, phoneNumber, salt, level, headImg, tbStatus);
 		}
 	}
-	//登录用户
+
+	/**
+	  * @Author:ricky
+	  * 功能：登录用户
+	  * 时间:2018/3/17 0017 15:41
+	  */
     @RequestMapping(value = "/login", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public WebResponse login(HttpServletRequest request, HttpServletResponse response, HttpSession session,String phone,String password) {
@@ -646,11 +651,12 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 		UserVo userVo=userService.getById(Integer.parseInt(userId));
 		//删除原先头像
 		String oldAvatarUrl=userVo.getHeadImg();
-		String oldAvatarName=oldAvatarUrl.split("http://kjz-article-photo.oss-cn-beijing.aliyuncs.com/ArticlePhoto/")[0];
 		OSSUtils utils=new OSSUtils();
 		OSSClient ossClient=utils.createCilent();
-		utils.delAvatar(oldAvatarName,ossClient);
-
+		if(oldAvatarUrl!=null){
+			String oldAvatarName=oldAvatarUrl.split("http://kjz-article-photo.oss-cn-beijing.aliyuncs.com/UserAvatar/")[1];
+			utils.delAvatar(oldAvatarName,ossClient);
+		}
 		//上传新头像,并保存到数据库
 		try{
 			String newAvatarUrl=utils.uploadAvatar(fileName,file.getInputStream(),ossClient);
@@ -660,7 +666,7 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 			userService.update(user);
 			jsonObject.put("statusCode",statusCode);
 			jsonObject.put("statusMsg","修改成功！");
-			jsonObject.put("data","");
+			jsonObject.put("data",newAvatarUrl);
 		}catch (Exception e){
 			e.printStackTrace();
 			statusCode=201;
