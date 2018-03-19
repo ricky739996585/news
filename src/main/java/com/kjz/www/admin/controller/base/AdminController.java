@@ -502,16 +502,16 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
     
-    //管理员登陆注销
-  	@RequestMapping(value = "/exitAdmin", produces = "application/json;charset=UTF-8")
-  	@ResponseBody
-  	public WebResponse exitAdmin(HttpServletRequest request, HttpServletResponse response, HttpSession session,String nickname,String password) {
-  		String statusMsg = "";
-  		Integer statusCode = 200;
-  		Object data = null;
-  		statusMsg="注销成功！";
-  		session.removeAttribute("admin");
-  		return webResponse.getWebResponse(statusCode, statusMsg, data);
-  	}
+//    //管理员登陆注销
+//  	@RequestMapping(value = "/exitAdmin", produces = "application/json;charset=UTF-8")
+//  	@ResponseBody
+//  	public WebResponse exitAdmin(HttpServletRequest request, HttpServletResponse response, HttpSession session,String nickname,String password) {
+//  		String statusMsg = "";
+//  		Integer statusCode = 200;
+//  		Object data = null;
+//  		statusMsg="注销成功！";
+//  		session.removeAttribute("admin");
+//  		return webResponse.getWebResponse(statusCode, statusMsg, data);
+//  	}
 }
 
