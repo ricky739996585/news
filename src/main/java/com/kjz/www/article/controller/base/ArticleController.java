@@ -185,12 +185,12 @@ public class ArticleController {
         Article article = new Article();
         BeanUtils.copyProperties(articleVo, article);
         UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-        if (userCookie == null) {
-            statusMsg = "请登录！";
-            statusCode = 201;
-            data = statusMsg;
-            return webResponse.getWebResponse(statusCode, statusMsg, data);
-        }
+//        if (userCookie == null) {
+//            statusMsg = "请登录！";
+//            statusCode = 201;
+//            data = statusMsg;
+//            return webResponse.getWebResponse(statusCode, statusMsg, data);
+//        }
 
         boolean isAdd = false;
         return this.addOrEditArticle(request, response, session, data, article,userId,title,content,preContent,clicks,typeName,isPass,tbStatus, isAdd,tagsId);
@@ -492,7 +492,7 @@ public class ArticleController {
         return JSON.toJSONString(data);
     }
 
-    //根据文章id删除
+    //根据文章id删除（数据库不保留
     @RequestMapping(value = "/delArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
     public WebResponse delArticle(int id) {
@@ -507,6 +507,104 @@ public class ArticleController {
         return webResponse.getWebResponse(statusMsg, data);
     }
 
+    //发表文章（String userId, String title, String content,  String tagsId,String articlePhotoUrl,String typeName）
+    private WebResponse newArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl,String typeName) {
+        //初始化数据
+        Object data = null;
+        String statusMsg = "";
+        Integer statusCode = 200;
+        String preContent=this.filterHtmlUtil.filterResult(content);//获得预览
+        Map<String, String> paramMap = new HashMap<String, String>();//保存前端传过来的Json到Map集合
+        paramMap.put("userId", userId);
+        paramMap.put("title", title);
+        paramMap.put("content", content);
+        data = paramMap;//map集合保存到data
+        Article article =  new Article();
+        
+        //数据校验
+        //检测userId
+        if(userId == null || ("".equals(userId.trim()))){//用户未登录
+        	statusMsg = "请登录！";
+	        statusCode = 201;
+	        data = statusMsg;
+	        return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
+        }
+        else{//若userId不为空
+            if (!userId.matches("^[0-9]*$")) {//用户参数错误
+                statusMsg = " userId参数数字型错误！！！";
+                statusCode = 201;
+                return webResponse.getWebResponse(statusCode, statusMsg, data);
+                }
+            //检测用户小黑屋
+            else{
+            	Integer userIdNumeri = Integer.parseInt(userId);
+            	Boolean userState=this.userUtils.getUserStateById(userIdNumeri);
+	            if(!userState){
+	            	statusMsg = "您已进入黑名单，无法发表文章";
+	                statusCode = 201;
+	                data = statusMsg;
+	                return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
+	                }
+	            else{
+	            	article.setUserId(userIdNumeri);
+	            	}
+	            }
+            }     
+        
+        //检测标题格式
+        if (title != null && !("".equals(title.trim()))) {
+            if(title.length() > 50) {
+                statusMsg = " 参数长度过长错误,title";
+                statusCode = 201;
+                return webResponse.getWebResponse(statusCode, statusMsg, data);
+            }
+            article.setTitle(title);
+        }
+        //检测内容格式
+        if (content != null && !("".equals(content.trim()))) {
+            if(content.length() > 65535) {
+                statusMsg = " 参数长度过长错误,content";
+                statusCode = 201;
+                return webResponse.getWebResponse(statusCode, statusMsg, data);
+            }
+            article.setContent(content);
+        }
+        //检测tagsId格式
+        if (!tagsId.matches("^[0-9]*$")) {//标签参数错误
+            statusMsg = " tagsId参数数字型错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+            }
+        //检测图片预览URL格式
+        if(articlePhotoUrl.length() > 65535) {
+            statusMsg = " 参数长度过长错误,articlePhotoUrl";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }     
+        
+        //检测通过
+        article.setTypeName(typeName);//设置是新闻or博客or论坛
+        article.setClicks(0);//默认0点击量
+        article.setIsPass("未审核");//默认未审核
+        article.setTbStatus("正常");//默认文章状态正常
+        article.setPreContent(preContent);//生成预览
+        this.articleService.insert(article);
+        //若文章表插入成功
+        if (article.getArticleId() > 0) {
+            //插入文章-标签表
+        	String tbStatus="正常";
+        	ArticleTags articleTagsEntity=this.articleTagsUtils.setEntity(article.getArticleId(), tagsId, tbStatus);
+            this.articleTagsService.insert(articleTagsEntity);
+            //插入文章-预览图表
+            ArticlePhoto articlePhotoEntity=this.articlePhotoUtils.setEntity(article.getArticleId(), articlePhotoUrl, tbStatus);
+            this.articlePhotoService.insert(articlePhotoEntity);
+            } else {
+                statusCode = 202;
+                statusMsg = "insert文章标签/图像预览失败";
+            }
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+
+    }
 
     //获取文章类型列表(HttpServletRequest request, HttpServletResponse response, HttpSession session,typeName,pageNo,pageSize,tbStatus,keyword,order,desc)
     private WebResponse getArticleTypeList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
@@ -604,6 +702,7 @@ public class ArticleController {
         }
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
+    
     //获取新闻列表
     @RequestMapping(value = "/getNewsArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -735,144 +834,113 @@ public class ArticleController {
         jsonObject.put("errno",0);
         return jsonObject;
     }
- 
-    //发表文章（String userId, String title, String content,  String tagsId,String articlePhotoUrl,String typeName）
-    private WebResponse newArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl,String typeName) {
-        //初始化数据
-        Object data = null;
-        String statusMsg = "";
-        Integer statusCode = 200;
-        String preContent=this.filterHtmlUtil.filterResult(content);//获得预览
-        Map<String, String> paramMap = new HashMap<String, String>();//保存前端传过来的Json到Map集合
-        paramMap.put("userId", userId);
-        paramMap.put("title", title);
-        paramMap.put("content", content);
-        data = paramMap;//map集合保存到data
-        Article article =  new Article();
-        
-        //数据校验
-        //检测userId
-        if(userId == null || ("".equals(userId.trim()))){//用户未登录
-        	statusMsg = "请登录！";
-	        statusCode = 201;
-	        data = statusMsg;
-	        return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
-        }
-        else{//若userId不为空
-            if (!userId.matches("^[0-9]*$")) {//用户参数错误
-                statusMsg = " userId参数数字型错误！！！";
-                statusCode = 201;
-                return webResponse.getWebResponse(statusCode, statusMsg, data);
-                }
-            //检测用户小黑屋
-            else{
-            	Integer userIdNumeri = Integer.parseInt(userId);
-            	Boolean userState=this.userUtils.getUserStateById(userIdNumeri);
-	            if(!userState){
-	            	statusMsg = "您已进入黑名单，无法发表文章";
-	                statusCode = 201;
-	                data = statusMsg;
-	                return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
-	                }
-	            else{
-	            	article.setUserId(userIdNumeri);
-	            	}
-	            }
-            }     
-        
-        //检测标题格式
-        if (title != null && !("".equals(title.trim()))) {
-            if(title.length() > 50) {
-                statusMsg = " 参数长度过长错误,title";
-                statusCode = 201;
-                return webResponse.getWebResponse(statusCode, statusMsg, data);
-            }
-            article.setTitle(title);
-        }
-        //检测内容格式
-        if (content != null && !("".equals(content.trim()))) {
-            if(content.length() > 65535) {
-                statusMsg = " 参数长度过长错误,content";
-                statusCode = 201;
-                return webResponse.getWebResponse(statusCode, statusMsg, data);
-            }
-            article.setContent(content);
-        }
-//        if (preContent != null && !("".equals(preContent.trim()))) {
-//            if(preContent.length() > 65535) {
-//                statusMsg = " 参数长度过长错误,preContent";
-//                statusCode = 201;
-//                return webResponse.getWebResponse(statusCode, statusMsg, data);
-//            }
-//            article.setPreContent(preContent);
-//        }
-        
-        //检测tagsId格式
-        if (!tagsId.matches("^[0-9]*$")) {//标签参数错误
-            statusMsg = " tagsId参数数字型错误！！！";
-            statusCode = 201;
-            return webResponse.getWebResponse(statusCode, statusMsg, data);
-            }
-        //检测图片预览URL格式
-        if(articlePhotoUrl.length() > 65535) {
-            statusMsg = " 参数长度过长错误,articlePhotoUrl";
-            statusCode = 201;
-            return webResponse.getWebResponse(statusCode, statusMsg, data);
-        }
-        
-        
-        //检测通过
-        article.setTypeName(typeName);//设置是新闻or博客or论坛
-        article.setClicks(0);//默认0点击量
-        article.setIsPass("未审核");//默认未审核
-        article.setTbStatus("正常");//默认文章状态正常
-        article.setPreContent(preContent);//设置预览
-        System.out.println(preContent);
-        this.articleService.insert(article);
-        //若文章表插入成功
-        if (article.getArticleId() > 0) {
-            //插入文章-标签表
-        	String tbStatus="正常";
-        	ArticleTags articleTagsEntity=this.articleTagsUtils.setEntity(article.getArticleId(), tagsId, tbStatus);
-            this.articleTagsService.insert(articleTagsEntity);
-            //插入文章-预览图表
-            ArticlePhoto articlePhotoEntity=this.articlePhotoUtils.setEntity(article.getArticleId(), articlePhotoUrl, tbStatus);
-            this.articlePhotoService.insert(articlePhotoEntity);
-            } else {
-                statusCode = 202;
-                statusMsg = "insert文章标签/图像预览失败";
-            }
-        return webResponse.getWebResponse(statusCode, statusMsg, data);
-        
-//        int num = this.articleService.update(article);
-//        if (num > 0) {
-//            statusMsg = "成功修改！！！";
-//        } else {
-//            statusCode = 202;
-//            statusMsg = "update false";
-//        }
-
-    }
-    
+  
     //发表新闻
-    @RequestMapping(value = "/newNewsArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/publishNewsArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public WebResponse newNewsArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
+    public WebResponse publishNewsArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
         return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "新闻");
     }
     
     //发表博客
-    @RequestMapping(value = "/newBlogArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/publishBlogArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public WebResponse newBlogArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
+    public WebResponse publishBlogArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
         return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "博客");
     }
     
     //发表论坛
-    @RequestMapping(value = "/newForumArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/publishForumArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public WebResponse newForumArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
+    public WebResponse publishForumArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
         return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "论坛");
     }
+
+    //审核文章
+    @RequestMapping(value = "/examineArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse examineArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId,String isPass) {
+        Object data = null;
+        String statusMsg = "";
+        Integer statusCode = 200;
+        Map<String, String> paramMap = new HashMap<String, String>();
+        paramMap.put("articleId", articleId);
+        data = paramMap;
+        if (articleId == null || "".equals(articleId.trim())) {
+            statusMsg = "未获得主键参数错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        Integer articleIdNumeri = articleId.matches("^[0-9]*$") ? Integer.parseInt(articleId) : 0;
+        if (articleIdNumeri == 0) {
+            statusMsg = "主键不为数字错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        //获得原文章
+        ArticleVo articleVo = this.articleService.getById(articleIdNumeri);
+        Article article = new Article();
+        BeanUtils.copyProperties(articleVo, article);  
+    
+        if (isPass != null && !("".equals(isPass.trim()))) {
+            if(isPass.length() > 50) {
+                statusMsg = " 参数长度过长错误,isPass";
+                statusCode = 201;
+                return webResponse.getWebResponse(statusCode, statusMsg, data);
+            }
+            article.setIsPass(isPass);
+        }
+
+        int num = this.articleService.update(article);
+        if (num > 0) {
+            statusMsg = "审核通过！！！";
+        } else {
+            statusCode = 202;
+            statusMsg = "审核错误";
+        }
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+    }
+
+    //删除文章（不删数据库记录
+    @RequestMapping(value = "/deleteArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse deleteArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId) {
+        Object data = null;
+        String statusMsg = "";
+        Integer statusCode = 200;
+        Map<String, String> paramMap = new HashMap<String, String>();
+        paramMap.put("articleId", articleId);
+        data = paramMap;
+        if (articleId == null || "".equals(articleId.trim())) {
+            statusMsg = "未获得主键参数错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        Integer articleIdNumeri = articleId.matches("^[0-9]*$") ? Integer.parseInt(articleId) : 0;
+        if (articleIdNumeri == 0) {
+            statusMsg = "主键不为数字错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        //获得原文章
+        ArticleVo articleVo = this.articleService.getById(articleIdNumeri);
+        Article article = new Article();
+        BeanUtils.copyProperties(articleVo, article);  
+    
+        article.setTbStatus("删除");
+        int num = this.articleService.update(article);
+        if (num > 0) {
+            statusMsg = "文章已删除！！！";
+        } else {
+            statusCode = 202;
+            statusMsg = "删除错误";
+        }
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+    }
+
+
+
+
+
 }
 
