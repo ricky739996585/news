@@ -1,8 +1,10 @@
 package com.kjz.www;
 
+import com.kjz.www.listener.SessionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
@@ -19,6 +21,13 @@ public class ArticleApplication{
 
 	public static void main(String[] args) {
 		SpringApplication.run(ArticleApplication.class, args);
+	}
+
+	//设置监听器
+	@Bean
+	public ServletListenerRegistrationBean<SessionListener> sessionListenerServletListenerRegistrationBean(){
+		ServletListenerRegistrationBean<SessionListener> registration = new ServletListenerRegistrationBean<SessionListener>(new SessionListener());
+		return registration;
 	}
 
 

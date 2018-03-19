@@ -86,12 +86,12 @@ public class ArticleCommentController {
 		ArticleComment articleComment = new ArticleComment();
 
 		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-//		if (userCookie == null) {
-//			statusMsg = "请登录！";
-//			statusCode = 201;
-//			data = statusMsg;
-//			return webResponse.getWebResponse(statusCode, statusMsg, data);
-//		}
+		if (userCookie == null) {
+			statusMsg = "请登录！";
+			statusCode = 201;
+			data = statusMsg;
+			return webResponse.getWebResponse(statusCode, statusMsg, data);
+		}
 //		//小黑屋:若用户状态为“禁止”，不允许发表评论
 //		else{
 			Integer userIdNumeri = Integer.parseInt(userId);

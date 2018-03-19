@@ -1,6 +1,7 @@
 package com.kjz.www.utils;
 
 import com.kjz.www.utils.vo.MailVo;
+import org.springframework.stereotype.Component;
 
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -13,6 +14,8 @@ import java.util.Random;
 /**
  * Created by ricky on 2018/3/18 0018
  */
+
+@Component("mailUtils")
 public class MailUtils {
     public final static String SMTP_QQ="smtp.qq.com";
     public final static String SMTP_YAHOO="smtp.mail.yahoo.com";
@@ -87,10 +90,12 @@ public class MailUtils {
         transport.close();
     }
 
-    public void send(String receiveMailAccount) throws Exception {
+    public String send(String receiveMailAccount,String code) throws Exception {
         // 1. 创建参数配置, 用于连接邮件服务器的参数配置
-        String sendEmailAccount="739996585@qq.com";
-        String sendEmailPassword="giaagzrorfzcbajh";
+//        String sendEmailAccount="739996585@qq.com";
+//        String sendEmailPassword="giaagzrorfzcbajh";
+        String sendEmailAccount="524887963@qq.com";
+        String sendEmailPassword="plsiiqzwaxrhbhge";
         String serverType="smtp.qq.com";
         Properties props = new Properties();                    // 参数配置
         props.setProperty("mail.transport.protocol", "smtp");   // 使用的协议（JavaMail规范要求）
@@ -109,7 +114,8 @@ public class MailUtils {
 
         // 3. 创建一封邮件
         MailVo mail=new MailVo("【看今朝科技】", "尊敬的用户", "您的验证码","");
-        mail.setContent(getCode());
+//        String code=getCode();
+        mail.setContent(getContent(code));
         MimeMessage message = createMessage(session, sendEmailAccount, receiveMailAccount,mail);
 
         // 4. 根据 Session 获取邮件传输对象
@@ -123,6 +129,8 @@ public class MailUtils {
 
         // 7. 关闭连接
         transport.close();
+
+        return code;
     }
 
     /**
@@ -163,9 +171,16 @@ public class MailUtils {
      * 设置短信内容
      * @return
      */
-    public String getCode(){
+    public String getContent(String code){
         StringBuffer sb=new StringBuffer();
         sb.append("【看今朝科技】");
+        sb.append(code);
+        sb.append("（动态验证码），请在30分钟内填写。");
+        return sb.toString();
+    }
+
+    public String getCode(){
+        StringBuffer sb=new StringBuffer();
         //生成4位的随机数
         String str="0123456789";
         for(int i=0;i<4;i++)
@@ -173,7 +188,7 @@ public class MailUtils {
             char ch=str.charAt(new Random().nextInt(str.length()));
             sb.append(ch);
         }
-        sb.append("（动态验证码），请在30分钟内填写。");
         return sb.toString();
     }
+
 }

@@ -14,8 +14,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.kjz.www.utils.*;
 
+import com.kjz.www.utils.vo.MySessionContext;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.http.protocol.HTTP;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.connection.jedis.JedisUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.BeanUtils;
@@ -50,7 +53,7 @@ public class UserController {
 	protected MD5Utils md5Utils;
 
 	@Resource
-	protected EmailUtils emailUtils;
+	protected MailUtils mailUtils;
 
 	@Resource
 	protected MessageUtils messageUtils;
@@ -212,7 +215,7 @@ public class UserController {
 	//注销用户
 	@RequestMapping(value = "/cancel", produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse cancel(HttpServletRequest request, HttpServletResponse response, HttpSession session,String nickname,String password) {
+	public WebResponse cancel(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 		String statusMsg = "";
 		Integer statusCode = 200;
 		Object data = null;
@@ -606,7 +609,7 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 		return webResponse.getWebResponse(statusMsg, data);
 	}
 
-	@RequestMapping(value = "/updatePassword", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/updatePassword", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public WebResponse updatePassword(String userId,String nickname,String password,String code) {
 		Object data = null;
@@ -619,7 +622,8 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 			if(valiCode.equals(code)){
 				User user=new User();
 				userVo.setNickname(nickname);
-				userVo.setPassword(password);
+				String pwd=MD5Utils.md5Hex(password+userVo.getSalt());
+				userVo.setPassword(pwd);
 				BeanUtils.copyProperties(userVo,user);
 				userService.update(user);
 			}else {
@@ -647,6 +651,12 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 	public JSONObject updateAvatar(HttpServletRequest request, String userId, MultipartFile file){
 		int statusCode = 200;
 		JSONObject jsonObject=new JSONObject();
+		if(file==null){
+			statusCode=201;
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","网络错误！");
+			jsonObject.put("data","");
+		}
 		String fileName=file.getOriginalFilename();
 		UserVo userVo=userService.getById(Integer.parseInt(userId));
 		//删除原先头像
@@ -678,9 +688,61 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 	}
 
 	/**
+	 * 修改用户头像
+	 * @author ricky
+	 * @param request
+	 * @param userId
+	 * @param code
+	 * @return
+	 */
+	@RequestMapping(value = "/updateEmail", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public JSONObject updateEmail(HttpServletRequest request, String userId, String code,String email,String sessionId){
+		int statusCode = 200;
+		HttpSession session= (HttpSession) MySessionContext.getInstance().getSession(sessionId);
+		JSONObject jsonObject=new JSONObject();
+		String mailCode= (String) session.getAttribute("mailCode");
+		UserVo userVo=userService.getById(Integer.parseInt(userId));
+		//验证 验证码
+		if(mailCode==null||code==null){
+			statusCode=201;
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","参数错误！");
+			jsonObject.put("data","");
+			return jsonObject;
+		}
+		if(!mailCode.equals(code)){
+			statusCode=201;
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","验证失败！");
+			jsonObject.put("data","");
+			session.removeAttribute("mailCode");
+			return jsonObject;
+		}
+		try{
+			//修改email地址;
+			userVo.setEmail(email);
+			User user=new User();
+			BeanUtils.copyProperties(userVo,user);
+			userService.update(user);
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","修改成功！");
+			jsonObject.put("data","");
+		}catch (Exception e){
+			e.printStackTrace();
+			statusCode=201;
+			jsonObject.put("statusCode",statusCode);
+			jsonObject.put("statusMsg","修改失败！");
+			jsonObject.put("data","");
+		}
+		return jsonObject;
+	}
+
+
+	/**
 	 * 发送邮箱验证码
 	 * @param request
-	 * @param email
+	 * @param email 目标邮箱
 	 * @return
 	 */
 	@RequestMapping(value = "/sendEmailMsg", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -688,19 +750,26 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 	public JSONObject sendEmailMsg(HttpServletRequest request, String email){
 		int statusCode = 200;
 		String statusMsg = "";
+		HttpSession session=request.getSession();
+		String sessionId=session.getId();
 		JSONObject jsonObject=new JSONObject();
 		String result =null;
 		try{
 			//发送短信
-			result=emailUtils.sendEmailCode(email);
+			String mailCode=mailUtils.getCode();
+			session.setAttribute("mailCode",mailCode);
+			mailUtils.send(email,mailCode);
+			System.out.println(mailCode+"-------------->");
+			JSONObject json=new JSONObject();
+			json.put("sessionId",sessionId);
 			jsonObject.put("statusCode",statusCode);
 			jsonObject.put("statusMsg","发送成功！");
-			jsonObject.put("data",result);
+			jsonObject.put("data",json);
 		}catch (Exception e){
 			e.printStackTrace();
 			jsonObject.put("statusCode",statusCode);
 			jsonObject.put("statusMsg","发送失败！");
-			jsonObject.put("data",result);
+			jsonObject.put("data","");
 		}
 		return jsonObject;
 	}
@@ -713,7 +782,7 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 	 */
 	@RequestMapping(value = "/sendMessageMsg", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public JSONObject sendMessageMsg(HttpServletRequest request, String phone){
+	public JSONObject sendMessageMsg(HttpServletRequest request,HttpSession session, String phone){
 		int statusCode = 200;
 		String statusMsg = "";
 		JSONObject jsonObject=new JSONObject();
@@ -721,6 +790,7 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 		try{
 			//发送短信
 			result=messageUtils.sendMsg(phone);
+			session.setAttribute("msgCode",result);
 			jsonObject.put("statusCode",statusCode);
 			jsonObject.put("statusMsg","发送成功！");
 			jsonObject.put("data",result);
@@ -732,6 +802,7 @@ private WebResponse addOrEditUser(HttpServletRequest request, HttpServletRespons
 		}
 		return jsonObject;
 	}
+
 
 }
 
