@@ -1,5 +1,5 @@
-var listURL = "/kjz/articleComment/getAdminArticleCommentList";
-var editURL = "/kjz/articleComment/editArticleComment";
+var listURL = "/articleComment/getOneArticleCommentList";
+var editURL = "/articleComment/editArticleComment";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）

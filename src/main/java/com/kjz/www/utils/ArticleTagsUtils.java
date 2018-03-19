@@ -10,11 +10,7 @@ import com.kjz.www.article.service.IArticleTagsService;
 
 @Component("articleTagsUtils")
 public class ArticleTagsUtils {
-	
 
-	
-	
-	
 	//设置一个ArticleTags实例
 	public ArticleTags setEntity(Integer articleId,String tagsId,String tbStatus){
 		//Integer articleIdNumeri = articleId;

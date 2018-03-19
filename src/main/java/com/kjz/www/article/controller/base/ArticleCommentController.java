@@ -54,6 +54,7 @@ public class ArticleCommentController {
 		}
 	}
 
+	//发表评论
 	@RequestMapping(value = "/addArticleComment", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public WebResponse addArticleComment(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String articleId, String commentContent) {
@@ -89,9 +90,9 @@ public class ArticleCommentController {
 		}
 		//小黑屋:若用户状态为“禁止”，不允许发表评论
 		else{
-			String userTbStatus=this.userUtils.getUserFromSession(request, response, session).getTbStatus();
-			if(userTbStatus.equals("禁止"))
-			{
+			Integer userIdNumeri = Integer.parseInt(userId);
+        	Boolean userState=this.userUtils.getUserStateById(userIdNumeri);
+            if(!userState){
 				statusMsg = "您已进入黑名单，无法发表评论";
 				statusCode = 201;
 				data = statusMsg;
@@ -321,13 +322,13 @@ private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServ
 		String statusMsg = "";
 		int statusCode = 200;
 		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
-		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
-			statusMsg = "请登录！";
-			statusCode = 201;
-			data = statusMsg;
-			return JSON.toJSONString(data);
-		}
+//		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
+//		if (userCookie == null) {
+//			statusMsg = "请登录！";
+//			statusCode = 201;
+//			data = statusMsg;
+//			return JSON.toJSONString(data);
+//		}
 
 		if (tbStatus != null && tbStatus.length() > 0) {
 			condition.put("tb_status='" + tbStatus + "'", "and");
@@ -364,6 +365,7 @@ private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServ
 		return JSON.toJSONString(data);
 	}
 
+	//删除文章
 	@RequestMapping(value = "/delArticleComment", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public WebResponse delArticleComment(int id) {
@@ -378,5 +380,71 @@ private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServ
 		return webResponse.getWebResponse(statusMsg, data);
 	}
 
+	//获取一篇文章的评论列表
+	@RequestMapping(value = "/getOneArticleCommentList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public String getOneArticleCommentList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+		@RequestParam String articleId, //articleId的评论
+		@RequestParam(defaultValue = "1", required = false) Integer pageNo,  
+		@RequestParam(defaultValue = "10", required = false) Integer pageSize, 
+		@RequestParam(defaultValue = "正常", required = false) String tbStatus, 
+		@RequestParam(required = false) String keyword, 
+		@RequestParam(defaultValue = "comment_id", required = false) String order,
+		@RequestParam(defaultValue = "desc", required = false) String desc ) {
+		Object data = null;
+		String statusMsg = "";
+		int statusCode = 200;
+		LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+		//检测登陆状态
+//		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
+//		if (userCookie == null) {
+//			statusMsg = "请登录！";
+//			statusCode = 201;
+//			data = statusMsg;
+//			return JSON.toJSONString(data);
+//		}
+
+		//检测格式
+		if(articleId !=null ||articleId.length()>0)
+		{
+			condition.put("article_id='"+articleId+"'", "and");
+		}
+		
+		if (tbStatus != null && tbStatus.length() > 0) {
+			condition.put("tb_status='" + tbStatus + "'", "and");
+		}
+		if (keyword != null && keyword.length() > 0) {
+			StringBuffer buf = new StringBuffer();
+			buf.append("(");
+			buf.append("comment_content like '%").append(keyword).append("%'");
+			buf.append(")");
+			condition.put(buf.toString(), "and");
+		}
+		String field = null;
+		if (condition.size() > 0) {
+			condition.put(condition.entrySet().iterator().next().getKey(), "");
+		}
+		int count = this.articleCommentService.getCount(condition, field);
+		if (order != null && order.length() > 0 & "desc".equals(desc)) {
+			order = order + " desc";
+		}
+		List<ArticleCommentVo> list = this.articleCommentService.getList(condition, pageNo, pageSize, order, field);
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		map.put("total", count);
+		int size = list.size();
+		if (size > 0) {
+			map.put("list", list);
+			data = map;
+			statusMsg = "根据条件获取分页数据成功！！！";
+		} else {
+			map.put("list", list);
+			data = map;
+			statusCode = 202;
+			statusMsg = "no record!!!";
+		}
+		return JSON.toJSONString(data);
+	}
+
+	
 }
 
