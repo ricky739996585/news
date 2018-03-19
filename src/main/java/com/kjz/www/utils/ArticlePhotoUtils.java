@@ -1,8 +1,10 @@
 package com.kjz.www.utils;
 
+import org.springframework.stereotype.Component;
+
 import com.kjz.www.article.domain.ArticlePhoto;
 
-
+@Component("articlePhotoUtils")
 public class ArticlePhotoUtils {
 
 

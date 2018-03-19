@@ -16,6 +16,7 @@ import com.kjz.www.tags.service.ITagsService;
 import com.kjz.www.tags.vo.TagsVo;
 import com.kjz.www.utils.ArticlePhotoUtils;
 import com.kjz.www.utils.ArticleTagsUtils;
+import com.kjz.www.utils.FilterHtmlUtil;
 import com.kjz.www.utils.OSSUtils;
 
 import org.apache.commons.collections.map.HashedMap;
@@ -63,7 +64,11 @@ public class ArticleController {
     @Resource
     protected ArticleTagsUtils articleTagsUtils;
     
+    @Resource
     protected ArticlePhotoUtils articlePhotoUtils;
+    
+    @Resource
+    protected FilterHtmlUtil filterHtmlUtil;
 
     @Resource
     protected IArticleService articleService;
@@ -737,6 +742,7 @@ public class ArticleController {
         Object data = null;
         String statusMsg = "";
         Integer statusCode = 200;
+        String preContent=this.filterHtmlUtil.filterResult(content);//获得预览
         Map<String, String> paramMap = new HashMap<String, String>();//保存前端传过来的Json到Map集合
         paramMap.put("userId", userId);
         paramMap.put("title", title);
@@ -813,11 +819,15 @@ public class ArticleController {
             statusCode = 201;
             return webResponse.getWebResponse(statusCode, statusMsg, data);
         }
+        
+        
         //检测通过
-        article.setTypeName(typeName);//博客
+        article.setTypeName(typeName);//设置是新闻or博客or论坛
         article.setClicks(0);//默认0点击量
         article.setIsPass("未审核");//默认未审核
         article.setTbStatus("正常");//默认文章状态正常
+        article.setPreContent(preContent);//设置预览
+        System.out.println(preContent);
         this.articleService.insert(article);
         //若文章表插入成功
         if (article.getArticleId() > 0) {

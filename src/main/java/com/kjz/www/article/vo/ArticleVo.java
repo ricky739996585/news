@@ -8,6 +8,7 @@ public class ArticleVo implements java.io.Serializable {
 	private Integer userId; // 用户ID
 	private String title; // 文章标题
 	private String content; // 文章内容
+	private String preContent;//文章预览
 	private Integer clicks; // 浏览次数
 	private String typeName; // 文章类型
 	private String isPass; // 状态：未审核，未审核；通过，通过；不通过，不通过；
@@ -43,6 +44,12 @@ public class ArticleVo implements java.io.Serializable {
 		this.content = content;
 	}
 
+	public String getPreContent() {
+		return preContent;
+	}
+	public void setPreContent(String preContent) {
+		this.preContent = preContent;
+	}
 	public Integer getClicks() {
 		return clicks;
 	}
