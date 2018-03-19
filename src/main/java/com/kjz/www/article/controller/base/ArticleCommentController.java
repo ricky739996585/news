@@ -20,14 +20,18 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import java.math.BigDecimal;
 
 import com.kjz.www.common.WebResponse;
 import com.kjz.www.article.service.IArticleCommentService;
+import com.kjz.www.article.domain.Article;
 import com.kjz.www.article.domain.ArticleComment;
 import com.kjz.www.article.vo.ArticleCommentVo;
 import com.kjz.www.article.vo.ArticleCommentVoFont;
+import com.kjz.www.article.vo.ArticleVo;
 import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
 
@@ -61,7 +65,7 @@ public class ArticleCommentController {
 		Object data = null;
 		String statusMsg = "";
 		Integer statusCode = 200;
-		userId=userUtils.getUserFromSession(request, response, session).getUserId().toString();
+		//userId=userUtils.getUserFromSession(request, response, session).getUserId().toString();
 		
 		Map<String, String> paramMap = new HashMap<String, String>();
 		paramMap.put("userId", userId);
@@ -82,14 +86,14 @@ public class ArticleCommentController {
 		ArticleComment articleComment = new ArticleComment();
 
 		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
-			statusMsg = "请登录！";
-			statusCode = 201;
-			data = statusMsg;
-			return webResponse.getWebResponse(statusCode, statusMsg, data);
-		}
-		//小黑屋:若用户状态为“禁止”，不允许发表评论
-		else{
+//		if (userCookie == null) {
+//			statusMsg = "请登录！";
+//			statusCode = 201;
+//			data = statusMsg;
+//			return webResponse.getWebResponse(statusCode, statusMsg, data);
+//		}
+//		//小黑屋:若用户状态为“禁止”，不允许发表评论
+//		else{
 			Integer userIdNumeri = Integer.parseInt(userId);
         	Boolean userState=this.userUtils.getUserStateById(userIdNumeri);
             if(!userState){
@@ -98,7 +102,7 @@ public class ArticleCommentController {
 				data = statusMsg;
 				return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
 			}
-		}
+//		}
 
 		boolean isAdd = true;
 		return this.addOrEditArticleComment(request, response, session, data, articleComment,userId,articleId,commentContent,tbStatus, isAdd);
@@ -145,7 +149,7 @@ public class ArticleCommentController {
 	}
 
 
-private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, ArticleComment articleComment, String userId, String articleId, String commentContent, String tbStatus, boolean isAdd) {
+	private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, ArticleComment articleComment, String userId, String articleId, String commentContent, String tbStatus, boolean isAdd) {
 		String statusMsg = "";
 		Integer statusCode = 200;
 		Integer userIdNumeri = 0;
@@ -365,7 +369,7 @@ private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServ
 		return JSON.toJSONString(data);
 	}
 
-	//删除文章
+	//删除评论
 	@RequestMapping(value = "/delArticleComment", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public WebResponse delArticleComment(int id) {
@@ -432,8 +436,17 @@ private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServ
 		Map<Object, Object> map = new HashMap<Object, Object>();
 		map.put("total", count);
 		int size = list.size();
+		JSONArray jsonArray=new JSONArray();
 		if (size > 0) {
-			map.put("list", list);
+			for(ArticleCommentVo articleCommentvo:list){
+	    		JSONObject json=new JSONObject();
+	    		//获得用户昵称
+	    		String userNickname=this.userUtils.getUserById(articleCommentvo.getUserId()).getNickname();//userId
+	    		json.put("userNickname", userNickname);
+	    		json.put("articleCommentvo", articleCommentvo);
+	    		jsonArray.add(json);
+        	}
+            map.put("list", jsonArray);
 			data = map;
 			statusMsg = "根据条件获取分页数据成功！！！";
 		} else {
@@ -445,6 +458,41 @@ private WebResponse addOrEditArticleComment(HttpServletRequest request, HttpServ
 		return JSON.toJSONString(data);
 	}
 
-	
+	//删除评论（不删数据库记录
+    @RequestMapping(value = "/deleteArticleComment", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse deleteArticleComment(HttpServletRequest request, HttpServletResponse response, HttpSession session, String commentId) {
+        Object data = null;
+        String statusMsg = "";
+        Integer statusCode = 200;
+        Map<String, String> paramMap = new HashMap<String, String>();
+        paramMap.put("commentId", commentId);
+        data = paramMap;
+        if (commentId == null || "".equals(commentId.trim())) {
+            statusMsg = "未获得主键参数错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        Integer commentIdNumeri = commentId.matches("^[0-9]*$") ? Integer.parseInt(commentId) : 0;
+        if (commentIdNumeri == 0) {
+            statusMsg = "主键不为数字错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+        //获得原文章
+        ArticleCommentVo articleCommentVo = this.articleCommentService.getById(commentIdNumeri);
+        ArticleComment articleComment = new ArticleComment();
+        BeanUtils.copyProperties(articleCommentVo, articleComment);  
+    
+        articleComment.setTbStatus("删除");
+        int num = this.articleCommentService.update(articleComment);
+        if (num > 0) {
+            statusMsg = "评论已删除！！！";
+        } else {
+            statusCode = 202;
+            statusMsg = "删除错误";
+        }
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+    }
 }
 
