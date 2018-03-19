@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 
-//@Resource
 public interface IAdminMapper extends IOperations<Admin, AdminVo> {
 }
 

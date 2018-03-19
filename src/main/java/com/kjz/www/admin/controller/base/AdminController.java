@@ -160,8 +160,13 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
 				return webResponse.getWebResponse(statusCode, statusMsg, data);
 			} 
 			//加密密码
-			String pwd=this.md5Utils.md5Hex(adminPassword);
-			admin.setAdminPassword(pwd);
+			try{
+//			String pwd=this.md5Utils.md5Hex(adminPassword);
+			String pwd=MD5Utils.encodeByMd5(adminPassword);
+			admin.setAdminPassword(pwd);}
+			catch(Exception err){
+				System.out.println(err);
+			}
 		}
 		if (adminAccount != null && !("".equals(adminAccount.trim()))) {
 			if(adminAccount.length() > 100) {
@@ -470,7 +475,7 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
         condition.put("admin_account='"+adminaccount+ "'", "");
         AdminVo adminVo = this.adminService.getOne(condition);
         Object data = null;
-        data=adminVo;
+        System.out.println(adminaccount);
         //Map<String, String> resultMap = new HashMap<String, String>();
         if (adminaccount.length() > 100 || password.length() > 100 ) {
             statusMsg = " 参数长度过长错误！！！";
@@ -479,16 +484,21 @@ private WebResponse addOrEditAdmin(HttpServletRequest request, HttpServletRespon
         }
         //若数据库有此管理员
         if(adminVo!=null) {
-        	
-        	String pwd=this.md5Utils.encodeByMd5(password);//前端输入的密码值
-        	
+//        	String pwd=this.md5Utils.encodeByMd5(password);//前端输入的密码值
+        	String pwd=MD5Utils.encodeByMd5(password);
             if(pwd.equals(adminVo.getAdminPassword())) {
                 statusMsg = "登录成功！！！";
+                data=adminVo;
                 this.adminUtils.putAdminInSession(request,response,session,adminVo);
+                return webResponse.getWebResponse(statusCode, statusMsg, data);
             }
-        }else {
-            statusMsg = "登录失败";
+            else {
+            statusMsg = "密码错误，登录失败";
+            data=null;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+            }
         }
+        statusMsg = "无此管理员";
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
     

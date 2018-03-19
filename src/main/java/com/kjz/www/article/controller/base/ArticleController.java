@@ -451,7 +451,7 @@ public class ArticleController {
         if (tbStatus != null && tbStatus.length() > 0) {
             condition.put("tb_status='" + tbStatus + "'", "and");
         }
-        condition.put("is_pass= '通过'","and");
+        //condition.put("is_pass= '通过'","and");
         if (keyword != null && keyword.length() > 0) {
             StringBuffer buf = new StringBuffer();
             buf.append("(");
@@ -740,6 +740,65 @@ public class ArticleController {
             @RequestParam(defaultValue = "article_id", required = false) String order,
             @RequestParam(defaultValue = "desc", required = false) String desc ){
         return this.getArticleTypeList(request, response, session,"博客",pageNo,pageSize,tbStatus,keyword,order,desc);
+    }
+    
+    //获取未审核的文章列表(管理员功能）
+    @RequestMapping(value = "/examineArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public String examineArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+                                      @RequestParam(defaultValue = "1", required = false) Integer pageNo,
+                                      @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                      @RequestParam(defaultValue = "正常", required = false) String tbStatus,
+                                      @RequestParam(required = false) String keyword,
+                                      @RequestParam(defaultValue = "article_id", required = false) String order,
+                                      @RequestParam(defaultValue = "desc", required = false) String desc ) {
+        Object data = null;
+        String statusMsg = "";
+        int statusCode = 200;
+        LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+
+        if (tbStatus != null && tbStatus.length() > 0) {
+            condition.put("tb_status='" + tbStatus + "'", "and");
+        }
+        condition.put("is_pass= '未审核'","and");
+        if (keyword != null && keyword.length() > 0) {
+            StringBuffer buf = new StringBuffer();
+            buf.append("(");
+            buf.append("title like '%").append(keyword).append("%'");
+            buf.append(" or ");
+            buf.append("content like '%").append(keyword).append("%'");
+            buf.append(" or ");
+            buf.append("pre_content like '%").append(keyword).append("%'");
+            buf.append(" or ");
+            buf.append("type_name like '%").append(keyword).append("%'");
+            buf.append(" or ");
+            buf.append("is_pass like '%").append(keyword).append("%'");
+            buf.append(")");
+            condition.put(buf.toString(), "and");
+        }
+        String field = null;
+        if (condition.size() > 0) {
+            condition.put(condition.entrySet().iterator().next().getKey(), "");
+        }
+        int count = this.articleService.getCount(condition, field);
+        if (order != null && order.length() > 0 & "desc".equals(desc)) {
+            order = order + " desc";
+        }
+        List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
+        Map<Object, Object> map = new HashMap<Object, Object>();
+        map.put("total", count);
+        int size = list.size();
+        if (size > 0) {
+            map.put("list", list);
+            data = map;
+            statusMsg = "根据条件获取分页数据成功！！！";
+        } else {
+            map.put("list", list);
+            data = map;
+            statusCode = 202;
+            statusMsg = "no record!!!";
+        }
+        return JSON.toJSONString(data);
     }
     
     //根据标签获取文章列表
