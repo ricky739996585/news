@@ -1,6 +1,7 @@
 package com.kjz.www;
 
 import com.kjz.www.listener.SessionListener;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,6 +18,7 @@ import javax.servlet.MultipartConfigElement;
 
 @SpringBootApplication
 @ImportResource(value = {"classpath:spring-*.xml"})
+@MapperScan("com.kjz.www.admin.mapper.IAdminMapper")
 public class ArticleApplication{
 
 	public static void main(String[] args) {
