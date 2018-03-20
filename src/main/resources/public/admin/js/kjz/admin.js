@@ -80,7 +80,7 @@ $('#tableList').bootstrapTable({
 		}
 		,{field : "operate", title : "操作",align: "center",
 			formatter:function(value,row,index){
-				var e = '<a href="/admin/kjz/addOrEditAdmin.html?adminId=' + row.adminId + '" target="_blank" >编辑</a> ';
+				var e = '<a href="/admin/admin/addOrEditAdmin.html?adminId=' + row.adminId + '" target="_blank" >编辑</a> ';
 				return e;
 			}
 		}

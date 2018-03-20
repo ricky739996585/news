@@ -1,5 +1,5 @@
-var listURL = "/kjz/tags/getAdminTagsList";
-var editURL = "/kjz/tags/editTags";
+var listURL = "/tags/getAdminTagsList";
+var editURL = "/tags/editTags";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）
@@ -56,7 +56,7 @@ $('#tableList').bootstrapTable({
 		}
 		,{field : "operate", title : "操作",align: "center",
 			formatter:function(value,row,index){
-				var e = '<a href="/admin/kjz/addOrEditTags.html?tagsId=' + row.tagsId + '" target="_blank" >编辑</a> ';
+				var e = '<a href="/admin/tags/addOrEditTags.html?tagsId=' + row.tagsId + '" target="_blank" >编辑</a> ';
 				return e;
 			}
 		}
