@@ -70,11 +70,11 @@ $('#tableList').bootstrapTable({
 		{field : "createTime", title : "创建时间"},
 		{field : "modifyTime", title : "修改时间"},
 		{field : "tbStatus", title : "状态"
-			,editable : { type : "select",title : "状态",source : [ {value : "正常",text : "正常"},{value : "删除",text : "删除"}]}
+			,editable : { type : "select",title : "状态",source : [ {value : "正常",text : "正常"},{value : "禁止",text : "禁止"}]}
 		}
 		,{field : "operate", title : "操作",align: "center",
 			formatter:function(value,row,index){
-				var e = '<a href="/admin/kjz/addOrEditUser.html?userId=' + row.userId + '" target="_blank" >编辑</a> ';
+				var e = '<a href="/admin/user/addOrEditUser.html?userId=' + row.userId + '" target="_blank" >编辑</a> ';
 				return e;
 			}
 		}

@@ -1,5 +1,5 @@
-var listURL = "/articleComment/getAdminArticleCommentList";
-var editURL = "/articleComment/editArticleComment";
+﻿var listURL = "/article/examineArticleList";
+var editURL = "/article/editArticle";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）
@@ -40,20 +40,29 @@ $('#tableList').bootstrapTable({
 	minimumCountColumns : 2, // 最少允许的列数
 	clickToSelect : true, // 是否启用点击选中行
 	// height : 550, // 行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
-	uniqueId : "commentId", // 每一行的唯一标识，一般为主键列
+	uniqueId : "articleId", // 每一行的唯一标识，一般为主键列
 	showToggle : true, // 是否显示详细视图和列表视图的切换按钮
 	cardView : false, // 是否显示详细视图
 	detailView : false, // 是否显示父子表
 	columns : [ 
-		{field : "commentId", title : "评论ID"},
-		{field : "userId", title : "用户昵称"
-			//,editable : { type : "text",title : "用户昵称",validate : function(v) {if (!v) {return "用户昵称不能为空";}}}
+		{field : "articleId", title : "文章ID"},
+		{field : "userId", title : "用户ID"
+			//,editable : { type : "text",title : "用户ID",validate : function(v) {if (!v) {return "用户ID不能为空";}}}
 		},
-		{field : "articleId", title : "文章ID"
-			//,editable : { type : "text",title : "文章ID",validate : function(v) {if (!v) {return "文章ID不能为空";}}}
+		{field : "title", title : "文章标题"
+			//,editable : { type : "text",title : "文章标题",validate : function(v) {if (!v) {return "文章标题不能为空";}}}
 		},
-		{field : "commentContent", title : "评论内容"
-			//,editable : { type : "text",title : "评论内容",validate : function(v) {if (!v) {return "评论内容不能为空";}}}
+		{field : "content", title : "文章内容"
+			//,editable : { type : "text",title : "文章内容",validate : function(v) {if (!v) {return "文章内容不能为空";}}}
+		},
+		{field : "clicks", title : "浏览次数"
+			//,editable : { type : "text",title : "浏览次数",validate : function(v) {if (!v) {return "浏览次数不能为空";}}}
+		},
+		{field : "typeName", title : "文章类型"
+			//,editable : { type : "text",title : "文章类型",validate : function(v) {if (!v) {return "文章类型不能为空";}}}
+		},
+		{field : "isPass", title : "状态"
+			,editable : { type : "select",title : "状态",source : [ {value : "未审核",text : "未审核"},{value : "通过",text : "通过"},{value : "不通过",text : "不通过"}]}
 		},
 		{field : "createTime", title : "创建时间"},
 		{field : "modifyTime", title : "修改时间"},
@@ -62,7 +71,7 @@ $('#tableList').bootstrapTable({
 		}
 		,{field : "operate", title : "操作",align: "center",
 			formatter:function(value,row,index){
-				var e = '<a href="/admin/kjz/addOrEditArticleComment.html?commentId=' + row.commentId + '" target="_blank" >编辑</a> ';
+				var e = '<a href="/article/addOrEditArticle.html?articleId=' + row.articleId + '" target="_blank" >编辑</a> ';
 				return e;
 			}
 		}

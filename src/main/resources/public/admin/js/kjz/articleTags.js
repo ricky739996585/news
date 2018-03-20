@@ -1,5 +1,5 @@
-var listURL = "/kjz/articleTags/getAdminArticleTagsList";
-var editURL = "/kjz/articleTags/editArticleTags";
+var listURL = "/articleTags/getAdminArticleTagsList";
+var editURL = "/articleTags/editArticleTags";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）
