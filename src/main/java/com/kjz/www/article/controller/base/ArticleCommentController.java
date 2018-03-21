@@ -86,23 +86,23 @@ public class ArticleCommentController {
 		ArticleComment articleComment = new ArticleComment();
 
 		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
-			statusMsg = "请登录！";
-			statusCode = 201;
-			data = statusMsg;
-			return webResponse.getWebResponse(statusCode, statusMsg, data);
-		}
+//		if (userCookie == null) {
+//			statusMsg = "请登录！";
+//			statusCode = 201;
+//			data = statusMsg;
+//			return webResponse.getWebResponse(statusCode, statusMsg, data);
+//		}
 //		//小黑屋:若用户状态为“禁止”，不允许发表评论
 //		else{
-			Integer userIdNumeri = Integer.parseInt(userId);
-        	Boolean userState=this.userUtils.getUserStateById(userIdNumeri);
-            if(!userState){
-				statusMsg = "您已进入黑名单，无法发表评论";
-				statusCode = 201;
-				data = statusMsg;
-				return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
-			}
-//		}
+//			Integer userIdNumeri = Integer.parseInt(userId);
+//        	Boolean userState=this.userUtils.getUserStateById(userIdNumeri);
+//            if(!userState){
+//				statusMsg = "您已进入黑名单，无法发表评论";
+//				statusCode = 201;
+//				data = statusMsg;
+//				return webResponse.getWebResponse(statusCode, statusMsg, data);//返回WebResponse对象
+//			}
+
 
 		boolean isAdd = true;
 		return this.addOrEditArticleComment(request, response, session, data, articleComment,userId,articleId,commentContent,tbStatus, isAdd);
@@ -137,12 +137,12 @@ public class ArticleCommentController {
 		ArticleComment articleComment = new ArticleComment();
 		BeanUtils.copyProperties(articleCommentVo, articleComment);
 		UserCookie userCookie = this.userUtils.getLoginUser(request, response, session);
-		if (userCookie == null) {
-			statusMsg = "请登录！";
-			statusCode = 201;
-			data = statusMsg;
-			return webResponse.getWebResponse(statusCode, statusMsg, data);
-		}
+//		if (userCookie == null) {
+//			statusMsg = "请登录！";
+//			statusCode = 201;
+//			data = statusMsg;
+//			return webResponse.getWebResponse(statusCode, statusMsg, data);
+//		}
 
 		boolean isAdd = false;
 		return this.addOrEditArticleComment(request, response, session, data, articleComment,userId,articleId,commentContent,tbStatus, isAdd);

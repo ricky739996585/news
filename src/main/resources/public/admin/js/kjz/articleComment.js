@@ -1,5 +1,5 @@
-var listURL = "/articleComment/getAdminArticleCommentList";
-var editURL = "/articleComment/editArticleComment";
+var listURL = "127.0.0.1:9090/articleComment/getAdminArticleCommentList";
+var editURL = "127.0.0.1:9090/articleComment/editArticleComment";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）

@@ -18,26 +18,38 @@
 			<div class="col-sm-12">
 				<div class="ibox float-e-margins">
 					<div class="ibox-title">
-						<h5>登陆测试</h5>
+						<h5>添加文章ID</h5>
 					</div>
 					<div class="ibox-content">
-						<form id="user" role="form" action="192.168.10.188:9090/user/login" method="post">
+						<form id="article" role="form" action="/article/newNewsArticle" method="post">
                             	<div class="row">
-                            		
                             		<div class="form-group  col-md-4">
-                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">手机号码：</label>
-                                		<div class="col-sm-8"><input type="text" id="phone" name="phone" size="30" class="form-control"  ></div>
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户ID：</label>
+                                		<div class="col-sm-8"><input type="text" id="userId" name="userId" size="30" class="form-control"  ></div>
+                            		</div>
+									<div class="form-group  col-md-4">
+										<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">标签ID：</label>
+										<div class="col-sm-8"><input type="text" id="tagsId" name="tagsId" size="30" class="form-control"  ></div>
+									</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">文章标题：</label>
+                                		<div class="col-sm-8"><input type="text" id="title" name="title" size="30" class="form-control"  ></div>
                             		</div>
                             		<div class="form-group  col-md-4">
-                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">用户密码：</label>
-                                		<div class="col-sm-8"><input type="text" id="password" name="password" size="30" class="form-control"  ></div>
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">文章内容：</label>
+                                		<div class="col-sm-8"><input type="text" id="content" name="content" size="30" class="form-control"  ></div>
                             		</div>
-                            	</div>
+                            		<div class="form-group  col-md-4">
+                                		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">文章图像链接：</label>
+                                		<div class="col-sm-8"><input type="text" id="articlePhotoUrl" name="articlePhotoUrl" size="30" class="form-control"  ></div>
+                            		</div>
+                            	</div>             
                             	
                             	<div class="row">
                             		
+                            		
                             		<div class="form-group  col-md-4">
-                            			<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit">登陆</button>
+                            			<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit">添加</button>
                             			<input type="hidden" id="articleId" name="articleId" value="" >
 									</div>
                             	</div>
@@ -71,7 +83,7 @@
 				$("#status").attr("disabled",false);
 			}
 			$.ajax({
-				url : "/admin/article/getArticleById",
+				url : "/article/getArticleById",
 				type : "post",
 				data : {
 					"articleId" : articleId

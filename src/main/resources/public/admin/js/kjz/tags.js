@@ -1,5 +1,5 @@
-var listURL = "/tags/getAdminTagsList";
-var editURL = "/tags/editTags";
+var listURL = "127.0.0.1:9090/tags/getAdminTagsList";
+var editURL = "127.0.0.1:9090/tags/editTags";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）

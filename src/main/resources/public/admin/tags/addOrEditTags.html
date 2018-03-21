@@ -21,7 +21,7 @@
 						<h5>添加标签编号</h5>
 					</div>
 					<div class="ibox-content">
-						<form id="tags" role="form" action="/tags/addOrEditTags" method="post">
+						<form id="tags" role="form" action="localhost:9090/tags/addOrEditTags" method="post">
                             	<div class="row">
                             		<div class="form-group  col-md-4">
                                 		<label class="col-sm-4 control-label" style="text-align:right;padding-top:7px;">标签名：</label>
@@ -76,7 +76,7 @@
 				$("#status").attr("disabled",false);
 			}
 			$.ajax({
-				url : "/tags/getTagsById",
+				url : "localhost:9090/tags/getTagsById",
 				type : "post",
 				data : {
 					"tagsId" : tagsId

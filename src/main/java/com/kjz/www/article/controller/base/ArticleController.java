@@ -292,7 +292,7 @@ public class ArticleController {
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
 
-    //查找文章（通过articleId）
+    //获取一篇文章（通过articleId）
     @RequestMapping(value = "/getArticleById", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public WebResponse getArticleById(String articleId) {
@@ -346,9 +346,6 @@ public class ArticleController {
         }
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
-
-
-
 
     @RequestMapping(value = "/getOneArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -433,7 +430,7 @@ public class ArticleController {
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
 
-
+    //所有文章（包括未审核，通过，不通过，状态正常）
     @RequestMapping(value = "/getAdminArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String getAdminArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
@@ -645,7 +642,7 @@ public class ArticleController {
         if (order != null && order.length() > 0 & "desc".equals(desc)) {
             order = order + " desc";
         }
-        //新闻ArticleVo列表
+        //ArticleVo列表
         List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
         
         Map<Object, Object> map = new HashMap<Object, Object>();//data
@@ -675,9 +672,10 @@ public class ArticleController {
         		for(ArticleTagsVo articleTagsvo:articleTagsList){
         			Integer tagsId=articleTagsvo.getTagsId();//tags_id
         			TagsVo tagsvo=this.tagsService.getById(tagsId);
+        			if(tagsvo!=null){
         			Tags tags=new Tags();
         			BeanUtils.copyProperties(tagsvo,tags);
-        			tagsList.add(tags);
+        			tagsList.add(tags);}
         		}
         		json.put("tagsList", tagsList);
         		
@@ -716,31 +714,6 @@ public class ArticleController {
         return this.getArticleTypeList(request, response, session,"新闻",pageNo,pageSize,tbStatus,keyword,order,desc);
     }
     
-    //获取博客列表
-    @RequestMapping(value = "/getBlogArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public WebResponse getBlogArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-            @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-            @RequestParam(defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(defaultValue = "正常", required = false) String tbStatus,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "article_id", required = false) String order,
-            @RequestParam(defaultValue = "desc", required = false) String desc ){
-        return this.getArticleTypeList(request, response, session,"博客",pageNo,pageSize,tbStatus,keyword,order,desc);
-    }
-    
-    //获取论坛列表
-    @RequestMapping(value = "/getForumArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public WebResponse getForumArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-            @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-            @RequestParam(defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(defaultValue = "正常", required = false) String tbStatus,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "article_id", required = false) String order,
-            @RequestParam(defaultValue = "desc", required = false) String desc ){
-        return this.getArticleTypeList(request, response, session,"博客",pageNo,pageSize,tbStatus,keyword,order,desc);
-    }
     
     //获取未审核的文章列表(管理员功能）
     @RequestMapping(value = "/examineArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -802,6 +775,7 @@ public class ArticleController {
     }
     
     //根据标签获取文章列表
+    /*
     @RequestMapping(value = "/getTagArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
     public String getTagArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
@@ -860,6 +834,7 @@ public class ArticleController {
         }
         return JSON.toJSONString(data);
     }
+    */
 
     //插入图片
     @RequestMapping(value = "/insertPic", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
@@ -895,70 +870,58 @@ public class ArticleController {
     }
   
     //发表新闻
-    @RequestMapping(value = "/publishNewsArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/publishNews", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
     public WebResponse publishNewsArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
         return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "新闻");
     }
     
-    //发表博客
-    @RequestMapping(value = "/publishBlogArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public WebResponse publishBlogArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
-        return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "博客");
-    }
     
-    //发表论坛
-    @RequestMapping(value = "/publishForumArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public WebResponse publishForumArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
-        return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "论坛");
-    }
 
-    //审核文章
-    @RequestMapping(value = "/examineArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public WebResponse examineArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId,String isPass) {
-        Object data = null;
-        String statusMsg = "";
-        Integer statusCode = 200;
-        Map<String, String> paramMap = new HashMap<String, String>();
-        paramMap.put("articleId", articleId);
-        data = paramMap;
-        if (articleId == null || "".equals(articleId.trim())) {
-            statusMsg = "未获得主键参数错误！！！";
-            statusCode = 201;
-            return webResponse.getWebResponse(statusCode, statusMsg, data);
-        }
-        Integer articleIdNumeri = articleId.matches("^[0-9]*$") ? Integer.parseInt(articleId) : 0;
-        if (articleIdNumeri == 0) {
-            statusMsg = "主键不为数字错误！！！";
-            statusCode = 201;
-            return webResponse.getWebResponse(statusCode, statusMsg, data);
-        }
-        //获得原文章
-        ArticleVo articleVo = this.articleService.getById(articleIdNumeri);
-        Article article = new Article();
-        BeanUtils.copyProperties(articleVo, article);  
-    
-        if (isPass != null && !("".equals(isPass.trim()))) {
-            if(isPass.length() > 50) {
-                statusMsg = " 参数长度过长错误,isPass";
-                statusCode = 201;
-                return webResponse.getWebResponse(statusCode, statusMsg, data);
-            }
-            article.setIsPass(isPass);
-        }
-
-        int num = this.articleService.update(article);
-        if (num > 0) {
-            statusMsg = "审核通过！！！";
-        } else {
-            statusCode = 202;
-            statusMsg = "审核错误";
-        }
-        return webResponse.getWebResponse(statusCode, statusMsg, data);
-    }
+    //审核文章（管理员审核未审核文章）
+//    @RequestMapping(value = "/examineArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+//    @ResponseBody
+//    public WebResponse examineArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId,String isPass) {
+//        Object data = null;
+//        String statusMsg = "";
+//        Integer statusCode = 200;
+//        Map<String, String> paramMap = new HashMap<String, String>();
+//        paramMap.put("articleId", articleId);
+//        data = paramMap;
+//        if (articleId == null || "".equals(articleId.trim())) {
+//            statusMsg = "未获得主键参数错误！！！";
+//            statusCode = 201;
+//            return webResponse.getWebResponse(statusCode, statusMsg, data);
+//        }
+//        Integer articleIdNumeri = articleId.matches("^[0-9]*$") ? Integer.parseInt(articleId) : 0;
+//        if (articleIdNumeri == 0) {
+//            statusMsg = "主键不为数字错误！！！";
+//            statusCode = 201;
+//            return webResponse.getWebResponse(statusCode, statusMsg, data);
+//        }
+//        //获得原文章
+//        ArticleVo articleVo = this.articleService.getById(articleIdNumeri);
+//        Article article = new Article();
+//        BeanUtils.copyProperties(articleVo, article);  
+//    
+//        if (isPass != null && !("".equals(isPass.trim()))) {
+//            if(isPass.length() > 50) {
+//                statusMsg = " 参数长度过长错误,isPass";
+//                statusCode = 201;
+//                return webResponse.getWebResponse(statusCode, statusMsg, data);
+//            }
+//            article.setIsPass(isPass);
+//        }
+//
+//        int num = this.articleService.update(article);
+//        if (num > 0) {
+//            statusMsg = "审核通过！！！";
+//        } else {
+//            statusCode = 202;
+//            statusMsg = "审核错误";
+//        }
+//        return webResponse.getWebResponse(statusCode, statusMsg, data);
+//    }
 
     //删除文章（不删数据库记录
     @RequestMapping(value = "/deleteArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
