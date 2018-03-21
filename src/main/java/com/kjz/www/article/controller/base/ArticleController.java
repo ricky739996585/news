@@ -582,7 +582,7 @@ public class ArticleController {
         //检测通过
         article.setTypeName(typeName);//设置是新闻or博客or论坛
         article.setClicks(0);//默认0点击量
-        article.setIsPass("未审核");//默认未审核
+        article.setIsPass("通过");//新闻默认通过
         article.setTbStatus("正常");//默认文章状态正常
         article.setPreContent(preContent);//生成预览
         this.articleService.insert(article);
@@ -870,7 +870,7 @@ public class ArticleController {
     }
   
     //发表新闻
-    @RequestMapping(value = "/publishNews", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/publishNewsArticle", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
     public WebResponse publishNewsArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String userId, String title, String content,  String tagsId,String articlePhotoUrl) {
         return this.newArticle(request, response, session, userId, title, content, tagsId,articlePhotoUrl, "新闻");
