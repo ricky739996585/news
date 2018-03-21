@@ -1,5 +1,5 @@
-var listURL = "127.0.0.1:9090/photo/getAdminPhotoList";
-var editURL = "127.0.0.1:9090/photo/editPhoto";
+var listURL = "/photo/getAdminPhotoList";
+var editURL = "/photo/editPhoto";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）
