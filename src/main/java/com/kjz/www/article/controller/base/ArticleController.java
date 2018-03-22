@@ -14,10 +14,7 @@ import com.aliyun.oss.OSSClient;
 import com.kjz.www.tags.domain.Tags;
 import com.kjz.www.tags.service.ITagsService;
 import com.kjz.www.tags.vo.TagsVo;
-import com.kjz.www.utils.ArticlePhotoUtils;
-import com.kjz.www.utils.ArticleTagsUtils;
-import com.kjz.www.utils.FilterHtmlUtil;
-import com.kjz.www.utils.OSSUtils;
+import com.kjz.www.utils.*;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.springframework.http.MediaType;
@@ -44,7 +41,6 @@ import com.kjz.www.article.vo.ArticlePhotoVo;
 import com.kjz.www.article.vo.ArticleTagsVo;
 import com.kjz.www.article.vo.ArticleVo;
 import com.kjz.www.article.vo.ArticleVoFont;
-import com.kjz.www.utils.UserUtils;
 import com.kjz.www.utils.vo.UserCookie;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -69,6 +65,9 @@ public class ArticleController {
     
     @Resource
     protected FilterHtmlUtil filterHtmlUtil;
+
+    @Resource
+    protected SensitivewordFilterUtils sensitivewordFilterUtils;
 
     @Resource
     protected IArticleService articleService;
@@ -564,6 +563,8 @@ public class ArticleController {
                 statusCode = 201;
                 return webResponse.getWebResponse(statusCode, statusMsg, data);
             }
+            //过滤文章内容
+            String cont=sensitivewordFilterUtils.replaceSensitiveWord(content,1,"*");
             article.setContent(content);
         }
         //检测tagsId格式
