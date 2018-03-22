@@ -1,4 +1,4 @@
-﻿var listURL = "/article/getAdminArticleList";
+﻿var listURL = "/article/getNewsArticleList";
 var editURL = "/article/editArticle";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
@@ -64,6 +64,10 @@ $('#tableList').bootstrapTable({
 		{field : "isPass", title : "状态"
 			,editable : { type : "select",title : "状态",source : [ {value : "未审核",text : "未审核"},{value : "通过",text : "通过"},{value : "不通过",text : "不通过"}]}
 		},
+        {field : "top", title : "置顶状态"
+            ,editable : { type : "select",title : "置顶状态",source : [ {value : "正常",text : "正常"},{value : "置顶",text : "置顶"},{value : "不通过",text : "不通过"}]}
+        },
+        {field : "topTime", title : "置顶时间"},
 		{field : "createTime", title : "创建时间"},
 		{field : "modifyTime", title : "修改时间"},
 		{field : "tbStatus", title : "状态"

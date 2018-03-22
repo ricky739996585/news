@@ -10,6 +10,8 @@ public class Article implements java.io.Serializable {
 	private Integer clicks; // 浏览次数
 	private String typeName; // 文章类型
 	private String isPass; // 状态：未审核，未审核；通过，通过；不通过，不通过；
+	private String top; //置顶状态：正常，正常；置顶，置顶；
+	private String topTime; //置顶时间
 	private String tbStatus; // 状态：正常，正常；删除，删除；
 
 	public Integer getArticleId() {
@@ -75,5 +77,22 @@ public class Article implements java.io.Serializable {
 		this.tbStatus = tbStatus;
 	}
 
+
+	public String getTop() {
+		return top;
+	}
+
+	public void setTop(String top) {
+		this.top = top;
+	}
+
+
+	public String getTopTime() {
+		return topTime;
+	}
+
+	public void setTopTime(String topTime) {
+		this.topTime = topTime;
+	}
 }
 

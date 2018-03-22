@@ -11,6 +11,8 @@
     <result column="clicks" jdbcType="INTEGER" property="clicks" />
     <result column="type_name" jdbcType="CHAR" property="typeName" />
     <result column="is_pass" jdbcType="CHAR" property="isPass" />
+    <result column="top" jdbcType="CHAR" property="top" />
+    <result column="top_time" jdbcType="TIMESTAMP" property="topTime" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
     <result column="tb_status" jdbcType="CHAR" property="tbStatus" />
@@ -24,31 +26,33 @@
     <result column="clicks" jdbcType="INTEGER" property="clicks" />
     <result column="type_name" jdbcType="CHAR" property="typeName" />
     <result column="is_pass" jdbcType="CHAR" property="isPass" />
+    <result column="top" jdbcType="CHAR" property="top" />
+    <result column="top_time" jdbcType="TIMESTAMP" property="topTime" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
     <result column="tb_status" jdbcType="CHAR" property="tbStatus" />
   </resultMap>
   <sql id="baseColumnList">
-article_id,user_id,title,content,pre_content,clicks,type_name,is_pass,create_time,modify_time,tb_status  </sql>
+article_id,user_id,title,content,pre_content,clicks,type_name,is_pass,top,top_time,create_time,modify_time,tb_status  </sql>
   <sql id="voColumnList">
-article_id,user_id,title,content,pre_content,clicks,type_name,is_pass,create_time,modify_time,tb_status  </sql>
+article_id,user_id,title,content,pre_content,clicks,type_name,is_pass,top,top_time,create_time,modify_time,tb_status  </sql>
     <insert id="insert" useGeneratedKeys="true" keyProperty="entity.articleId">
     INSERT INTO ${tableName} (
-    user_id, title, content, pre_content, clicks, type_name, is_pass
+    user_id, title, content, pre_content, clicks, type_name, is_pass, top, top_time
     ) VALUES (
-    #{entity.userId}, #{entity.title}, #{entity.content}, #{entity.preContent}, #{entity.clicks}, #{entity.typeName}, #{entity.isPass}
+    #{entity.userId}, #{entity.title}, #{entity.content}, #{entity.preContent}, #{entity.clicks}, #{entity.typeName}, #{entity.isPass}, #{entity.top}, #{entity.topTime}
     )  </insert>
     <insert id="insertByBatch" parameterType="java.util.List">
     INSERT INTO ${tableName} (
-    user_id, title, content, pre_content, clicks, type_name, is_pass
+    user_id, title, content, pre_content, clicks, type_name, is_pass,top, top_time
     ) VALUES 
     <foreach collection="list" item="entity" index="index" separator=",">
-      (#{entity.userId}, #{entity.title}, #{entity.content}, #{entity.preContent}, #{entity.clicks}, #{entity.typeName}, #{entity.isPass})
+      (#{entity.userId}, #{entity.title}, #{entity.content}, #{entity.preContent}, #{entity.clicks}, #{entity.typeName}, #{entity.isPass},#{entity.top})
     </foreach>
   </insert>
     <update id="update">
     UPDATE ${tableName} SET 
-    user_id=#{entity.userId}, title=#{entity.title}, content=#{entity.content}, pre_content=#{entity.preContent}, clicks=#{entity.clicks}, type_name=#{entity.typeName}, is_pass=#{entity.isPass}, tb_status=#{entity.tbStatus}
+    user_id=#{entity.userId}, title=#{entity.title}, content=#{entity.content}, pre_content=#{entity.preContent}, clicks=#{entity.clicks}, type_name=#{entity.typeName}, is_pass=#{entity.isPass},top=#{entity.top}, tb_status=#{entity.tbStatus}
      WHERE 
     article_id = #{entity.articleId}
 

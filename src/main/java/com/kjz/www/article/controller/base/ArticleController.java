@@ -1,6 +1,7 @@
 
 package com.kjz.www.article.controller.base;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.annotation.Resource;
@@ -565,7 +566,7 @@ public class ArticleController {
             }
             //过滤文章内容
             String cont=sensitivewordFilterUtils.replaceSensitiveWord(content,1,"*");
-            article.setContent(content);
+            article.setContent(cont);
         }
         //检测tagsId格式
         if (!tagsId.matches("^[0-9]*$")) {//标签参数错误
@@ -585,7 +586,8 @@ public class ArticleController {
         article.setClicks(0);//默认0点击量
         article.setIsPass("通过");//新闻默认通过
         article.setTbStatus("正常");//默认文章状态正常
-        article.setPreContent(preContent);//生成预览
+        String preCont=sensitivewordFilterUtils.replaceSensitiveWord(preContent,1,"*");
+        article.setPreContent(preCont);//生成预览
         this.articleService.insert(article);
         //若文章表插入成功
         if (article.getArticleId() > 0) {
@@ -603,16 +605,29 @@ public class ArticleController {
         return webResponse.getWebResponse(statusCode, statusMsg, data);
 
     }
-
-    //获取文章类型列表(HttpServletRequest request, HttpServletResponse response, HttpSession session,typeName,pageNo,pageSize,tbStatus,keyword,order,desc)
-    private WebResponse getArticleTypeList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-    		@RequestParam String typeName,
+    
+    //获取新闻列表
+    @RequestMapping(value = "/getNewsArticleList", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse getNewsArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
             @RequestParam(defaultValue = "1", required = false) Integer pageNo,
             @RequestParam(defaultValue = "10", required = false) Integer pageSize,
             @RequestParam(defaultValue = "正常", required = false) String tbStatus,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "article_id", required = false) String order,
-            @RequestParam(defaultValue = "desc", required = false) String desc ) {
+            @RequestParam(defaultValue = "desc", required = false) String desc ){
+        return this.getArticleTypeList(request, response, session,"新闻",pageNo,pageSize,tbStatus,keyword,order,desc);
+    }
+
+    //获取文章类型列表(HttpServletRequest request, HttpServletResponse response, HttpSession session,typeName,pageNo,pageSize,tbStatus,keyword,order,desc)
+    private WebResponse getArticleTypeList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+                                           @RequestParam String typeName,
+                                           @RequestParam(defaultValue = "1", required = false) Integer pageNo,
+                                           @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                           @RequestParam(defaultValue = "正常", required = false) String tbStatus,
+                                           @RequestParam(required = false) String keyword,
+                                           @RequestParam(required = false) String order,
+                                           @RequestParam(defaultValue = "desc", required = false) String desc ) {
         Object data = null;
         int statusCode=200;
         String statusMsg="";
@@ -623,6 +638,7 @@ public class ArticleController {
         }
         condition.put("type_name='"+typeName+"'", "and");//要新闻Or博客Or论坛
         condition.put("is_pass= '通过'","and");//要通过审核
+        condition.put("top= '正常'","and");//要通过审核
 
         if (keyword != null && keyword.length() > 0) {//若搜索关键字不为空
             StringBuffer buf = new StringBuffer();
@@ -640,57 +656,58 @@ public class ArticleController {
             condition.put(condition.entrySet().iterator().next().getKey(), "");
         }
         int count = this.articleService.getCount(condition, field);//返回符合条件的个数
-        if (order != null && order.length() > 0 & "desc".equals(desc)) {
-            order = order + " desc";
-        }
+        order = "create_time desc";
+
         //ArticleVo列表
         List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
-        
+
         Map<Object, Object> map = new HashMap<Object, Object>();//data
         map.put("total", count);//新闻数量
         int size = list.size();
         JSONArray jsonArray=new JSONArray();
         if (size > 0) {//列表不为空，遍历列表拿到ArticleVo对象中的articleId,userId List
-        	for(ArticleVo articlevo:list){
-        		
-        		JSONObject json=new JSONObject();
-        		//获得用户昵称
-        		String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
-        		json.put("userNickname", userNickname);
-        		Article article=new Article(); 
-        		BeanUtils.copyProperties(articlevo, article);
-        		json.put("article",article);
-        		
-        		//获得文章标签名字
-        		Integer articleId =articlevo.getArticleId();//articleId
-        		LinkedHashMap<String, String> articleTagscondition = new LinkedHashMap<String, String>();
-        		articleTagscondition.put("article_id='"+articleId+"'", "and");
-        		  //获得文章标签中间表
-        		List<ArticleTagsVo> articleTagsList=this.articleTagsService.getList(articleTagscondition, pageNo, pageSize);
-        		    //获得标签列表中的tags_name By tags_id
-        		List<Tags> tagsList=new LinkedList<Tags>();
-        		//遍历中间表对象
-        		for(ArticleTagsVo articleTagsvo:articleTagsList){
-        			Integer tagsId=articleTagsvo.getTagsId();//tags_id
-        			TagsVo tagsvo=this.tagsService.getById(tagsId);
-        			if(tagsvo!=null){
-        			Tags tags=new Tags();
-        			BeanUtils.copyProperties(tagsvo,tags);
-        			tagsList.add(tags);}
-        		}
-        		json.put("tagsList", tagsList);
-        		
-        		//获得预览图像的链接
-        		LinkedHashMap<String, String> articlePhotocondition = new LinkedHashMap<String, String>();
-        		articlePhotocondition.put("article_id='"+articleId+"'", "and");
-        		  //获得文章图片列表
-        		ArticlePhotoVo articlePhotoVo=this.articlePhotoService.getOne(articlePhotocondition);
-        		String articlePhotoURL=articlePhotoVo.getArticlePhotoUrl();
-        		json.put("articlePhotoUrl", articlePhotoURL);
-        		jsonArray.add(json);
-        	}
+            for(ArticleVo articlevo:list){
+
+                JSONObject json=new JSONObject();
+                //获得用户昵称
+                String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
+                json.put("userNickname", userNickname);
+                Article article=new Article();
+                BeanUtils.copyProperties(articlevo, article);
+                json.put("article",article);
+
+                //获得文章标签名字
+                Integer articleId =articlevo.getArticleId();//articleId
+                LinkedHashMap<String, String> articleTagscondition = new LinkedHashMap<String, String>();
+                articleTagscondition.put("article_id='"+articleId+"'", "and");
+                //获得文章标签中间表
+                List<ArticleTagsVo> articleTagsList=this.articleTagsService.getList(articleTagscondition, pageNo, pageSize);
+                //获得标签列表中的tags_name By tags_id
+                List<Tags> tagsList=new LinkedList<Tags>();
+                //遍历中间表对象
+                for(ArticleTagsVo articleTagsvo:articleTagsList){
+                    Integer tagsId=articleTagsvo.getTagsId();//tags_id
+                    TagsVo tagsvo=this.tagsService.getById(tagsId);
+                    if(tagsvo!=null){
+                        Tags tags=new Tags();
+                        BeanUtils.copyProperties(tagsvo,tags);
+                        tagsList.add(tags);}
+                }
+                json.put("tagsList", tagsList);
+
+                //获得预览图像的链接
+                LinkedHashMap<String, String> articlePhotocondition = new LinkedHashMap<String, String>();
+                articlePhotocondition.put("article_id='"+articleId+"'", "and");
+                //获得文章图片列表
+                ArticlePhotoVo articlePhotoVo=this.articlePhotoService.getOne(articlePhotocondition);
+                if(articlePhotoVo!=null){
+                    String articlePhotoURL=articlePhotoVo.getArticlePhotoUrl();
+                    json.put("articlePhotoUrl", articlePhotoURL);
+                }
+                jsonArray.add(json);
+            }
             map.put("list", jsonArray);
-            
+
             data = map;
             statusMsg = "根据条件获取分页数据成功！！！";
         } else {
@@ -701,18 +718,119 @@ public class ArticleController {
         }
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
-    
+
     //获取新闻列表
-    @RequestMapping(value = "/getNewsArticleList", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/getTopArticleList", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
     @ResponseBody
-    public WebResponse getNewsArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-            @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-            @RequestParam(defaultValue = "10", required = false) Integer pageSize,
-            @RequestParam(defaultValue = "正常", required = false) String tbStatus,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "article_id", required = false) String order,
-            @RequestParam(defaultValue = "desc", required = false) String desc ){
-        return this.getArticleTypeList(request, response, session,"新闻",pageNo,pageSize,tbStatus,keyword,order,desc);
+    public WebResponse getTopArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+                                          @RequestParam(defaultValue = "1", required = false) Integer pageNo,
+                                          @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                          @RequestParam(defaultValue = "正常", required = false) String tbStatus,
+                                          @RequestParam(required = false) String keyword,
+                                          @RequestParam(defaultValue = "article_id", required = false) String order,
+                                          @RequestParam(defaultValue = "desc", required = false) String desc ){
+        return this.getTopArticleTypeList(request, response, session,"新闻",pageNo,pageSize,tbStatus,keyword,order,desc);
+    }
+
+    //获取置顶文章列表(HttpServletRequest request, HttpServletResponse response, HttpSession session,typeName,pageNo,pageSize,tbStatus,keyword,order,desc)
+    private WebResponse getTopArticleTypeList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+                                           @RequestParam String typeName,
+                                           @RequestParam(defaultValue = "1", required = false) Integer pageNo,
+                                           @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                           @RequestParam(defaultValue = "正常", required = false) String tbStatus,
+                                           @RequestParam(required = false) String keyword,
+                                           @RequestParam(required = false) String order,
+                                           @RequestParam(defaultValue = "desc", required = false) String desc ) {
+        Object data = null;
+        int statusCode=200;
+        String statusMsg="";
+        LinkedHashMap<String, String> condition = new LinkedHashMap<String, String>();
+
+        if (tbStatus != null && tbStatus.length() > 0) {
+            condition.put("tb_status='" + tbStatus + "'", "and");
+        }
+        condition.put("type_name='"+typeName+"'", "and");//要新闻Or博客Or论坛
+        condition.put("is_pass= '通过'","and");//要通过审核
+        condition.put("top= '置顶'","and");//要通过审核
+
+        if (keyword != null && keyword.length() > 0) {//若搜索关键字不为空
+            StringBuffer buf = new StringBuffer();
+            buf.append("(");
+            buf.append("title like '%").append(keyword).append("%'");
+            buf.append(" or ");
+            buf.append("content like '%").append(keyword).append("%'");
+            buf.append(" or ");
+            buf.append("type_name like '%").append(keyword).append("%'");
+            buf.append(")");
+            condition.put(buf.toString(), "and ");
+        }
+        String field = null;
+        if (condition.size() > 0) {
+            condition.put(condition.entrySet().iterator().next().getKey(), "");
+        }
+        int count = this.articleService.getCount(condition, field);//返回符合条件的个数
+        //按照 置顶-->置顶时间-->创建时间 来排序
+        order = "top='置顶' desc,top_time desc,create_time desc";
+
+        //ArticleVo列表
+        List<ArticleVo> list = this.articleService.getList(condition, pageNo, pageSize, order, field);
+
+        Map<Object, Object> map = new HashMap<Object, Object>();//data
+        map.put("total", count);//新闻数量
+        int size = list.size();
+        JSONArray jsonArray=new JSONArray();
+        if (size > 0) {//列表不为空，遍历列表拿到ArticleVo对象中的articleId,userId List
+            for(ArticleVo articlevo:list){
+
+                JSONObject json=new JSONObject();
+                //获得用户昵称
+                String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
+                json.put("userNickname", userNickname);
+                Article article=new Article();
+                BeanUtils.copyProperties(articlevo, article);
+                json.put("article",article);
+
+                //获得文章标签名字
+                Integer articleId =articlevo.getArticleId();//articleId
+                LinkedHashMap<String, String> articleTagscondition = new LinkedHashMap<String, String>();
+                articleTagscondition.put("article_id='"+articleId+"'", "and");
+                //获得文章标签中间表
+                List<ArticleTagsVo> articleTagsList=this.articleTagsService.getList(articleTagscondition, pageNo, pageSize);
+                //获得标签列表中的tags_name By tags_id
+                List<Tags> tagsList=new LinkedList<Tags>();
+                //遍历中间表对象
+                for(ArticleTagsVo articleTagsvo:articleTagsList){
+                    Integer tagsId=articleTagsvo.getTagsId();//tags_id
+                    TagsVo tagsvo=this.tagsService.getById(tagsId);
+                    if(tagsvo!=null){
+                        Tags tags=new Tags();
+                        BeanUtils.copyProperties(tagsvo,tags);
+                        tagsList.add(tags);}
+                }
+                json.put("tagsList", tagsList);
+
+                //获得预览图像的链接
+                LinkedHashMap<String, String> articlePhotocondition = new LinkedHashMap<String, String>();
+                articlePhotocondition.put("article_id='"+articleId+"'", "and");
+                //获得文章图片列表
+                ArticlePhotoVo articlePhotoVo=this.articlePhotoService.getOne(articlePhotocondition);
+                if(articlePhotoVo!=null){
+                    String articlePhotoURL=articlePhotoVo.getArticlePhotoUrl();
+                    json.put("articlePhotoUrl", articlePhotoURL);
+                }
+                jsonArray.add(json);
+            }
+            map.put("list", jsonArray);
+
+            data = map;
+            statusMsg = "根据条件获取分页数据成功！！！";
+        } else {
+            map.put("list", list);
+            data = map;
+            statusCode = 202;
+            statusMsg = "no record!!!";
+        }
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
     
     
@@ -961,7 +1079,65 @@ public class ArticleController {
         return webResponse.getWebResponse(statusCode, statusMsg, data);
     }
 
+    //置顶文章
+    @RequestMapping(value = "/topArticle", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse topArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId) {
+        Object data = null;
+        String statusMsg = "";
+        Integer statusCode = 200;
+        JSONObject jsonObject=new JSONObject();
+        if (articleId == null || "".equals(articleId.trim())) {
+            statusMsg = "未获得主键参数错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
 
+        //获得原文章
+        try{
+            ArticleVo articleVo = this.articleService.getById(Integer.parseInt(articleId));
+            articleVo.setTop("置顶");
+            Article article=new Article();
+            BeanUtils.copyProperties(articleVo,article);
+            this.articleService.update(article);
+            statusMsg="操作成功！";
+        }catch (Exception e){
+            statusMsg="操作失败！";
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+    }
+
+    //取消置顶文章
+    @RequestMapping(value = "/disTopArticle", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    public WebResponse disTopArticle(HttpServletRequest request, HttpServletResponse response, HttpSession session, String articleId) {
+        Object data = null;
+        String statusMsg = "";
+        Integer statusCode = 200;
+
+        if (articleId == null || "".equals(articleId.trim())) {
+            statusMsg = "未获得主键参数错误！！！";
+            statusCode = 201;
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+
+        //获得原文章
+        try{
+            ArticleVo articleVo = this.articleService.getById(Integer.parseInt(articleId));
+            articleVo.setTop("正常");
+            Article article=new Article();
+            BeanUtils.copyProperties(articleVo,article);
+            this.articleService.update(article);
+            statusMsg="操作成功！";
+        }catch (Exception e){
+            statusMsg="操作失败！";
+            return webResponse.getWebResponse(statusCode, statusMsg, data);
+        }
+
+        return webResponse.getWebResponse(statusCode, statusMsg, data);
+    }
 
 
 
