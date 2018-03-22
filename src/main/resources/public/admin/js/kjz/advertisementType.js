@@ -1,5 +1,5 @@
-var listURL = "/kjz/advertisementType/getAdminAdvertisementTypeList";
-var editURL = "/kjz/advertisementType/editAdvertisementType";
+var listURL = "/advertisementType/getAdminAdvertisementTypeList";
+var editURL = "/advertisementType/editAdvertisementType";
 $('#tableList').bootstrapTable({
 	url : listURL, // 请求后台的URL（*）
 	method : 'POST', // 请求方式（*）
@@ -18,14 +18,14 @@ $('#tableList').bootstrapTable({
 		var keyword = $("#keyword").val();
 		var order = $("#order").val();
 		var desc = $("input[name='desc']:checked").val();
-		var tbStatus = $("#tbStatus").val();
+		var tbstatus = $("#tbstatus").val();
 		var temp = {
 			pageSize : params.limit, // 页面大小
 			pageNo : pageNo, // 页码
 			keyword : keyword,
 			order : order,
 			desc : desc,
-			tbStatus : tbStatus
+			tbstatus : tbstatus
 		};
 		return temp;
 	},// 传递参数（*）
@@ -54,12 +54,12 @@ $('#tableList').bootstrapTable({
 		},
 		{field : "createTime", title : "创建时间"},
 		{field : "modifyTime", title : "修改时间"},
-		{field : "status", title : "状态"
+		{field : "tbstatus", title : "状态"
 			,editable : { type : "select",title : "状态",source : [ {value : "正常",text : "正常"},{value : "删除",text : "删除"}]}
 		}
 		,{field : "operate", title : "操作",align: "center",
 			formatter:function(value,row,index){
-				var e = '<a href="/admin/kjz/addOrEditAdvertisementType.html?advertisementTypeId=' + row.advertisementTypeId + '" target="_blank" >编辑</a> ';
+				var e = '<a href="/admin/advertisement/addOrEditAdvertisementType.html?advertisementTypeId=' + row.advertisementTypeId + '" target="_blank" >编辑</a> ';
 				return e;
 			}
 		}
@@ -70,8 +70,8 @@ $('#tableList').bootstrapTable({
 			url : editURL,
 			data : row,
 			dataType : 'JSON',
-			success : function(data, status) {
-				if (status == "success") {
+			success : function(data, tbstatus) {
+				if (tbstatus == "success") {
 					alert('提交数据成功');
 				}
 			},

@@ -11,7 +11,7 @@ public class AdvertisementVoFont implements java.io.Serializable {
 	private Integer orderNum; // 顺序
 	private String advertisementType; // 广告类型
 	private String createTime; // 创建时间
-	private String status; // 状态:正常,normal;删除,del;
+	private String tbstatus; // 状态:正常,normal;删除,del;
 
 	public Integer getAdvertisementId() {
 		return advertisementId;
@@ -61,13 +61,14 @@ public class AdvertisementVoFont implements java.io.Serializable {
 	public void setCreateTime(String createTime) {
 		this.createTime = createTime;
 	}
+	public String getTbstatus() {
+		return tbstatus;
+	}
+	public void setTbstatus(String tbstatus) {
+		this.tbstatus = tbstatus;
+	}
 
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
+
 
 }
 

@@ -11,7 +11,7 @@
 		<result column="advertisement_type" jdbcType="CHAR" property="advertisementType" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
-		<result column="status" jdbcType="CHAR" property="status" />
+		<result column="tb_status" jdbcType="CHAR" property="tbstatus" />
 	</resultMap>
 	<resultMap id="voResultMap" type="com.kjz.www.advertisement.vo.AdvertisementVo">
 		<id column="advertisement_id" jdbcType="INTEGER" property="advertisementId" />
@@ -22,29 +22,29 @@
 		<result column="advertisement_type" jdbcType="CHAR" property="advertisementType" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
-		<result column="status" jdbcType="CHAR" property="status" />
+		<result column="tb_status" jdbcType="CHAR" property="tbstatus" />
 	</resultMap>
 	<sql id="baseColumnList">
-advertisement_id,title,pic,target_url,order_num,advertisement_type,create_time,modify_time,status	</sql>
+advertisement_id,title,pic,target_url,order_num,advertisement_type,create_time,modify_time,tb_status	</sql>
 	<sql id="voColumnList">
-advertisement_id,title,pic,target_url,order_num,advertisement_type,create_time,modify_time,status	</sql>
+advertisement_id,title,pic,target_url,order_num,advertisement_type,create_time,modify_time,tb_status	</sql>
 		<insert id="insert" useGeneratedKeys="true" keyProperty="entity.advertisementId">
 		INSERT INTO ${tableName} (
-		title, pic, target_url, order_num, advertisement_type, status
+		title, pic, target_url, order_num, advertisement_type, tb_status
 		) VALUES (
-		#{entity.title}, #{entity.pic}, #{entity.targetUrl}, #{entity.orderNum}, #{entity.advertisementType}, #{entity.status}
+		#{entity.title}, #{entity.pic}, #{entity.targetUrl}, #{entity.orderNum}, #{entity.advertisementType}, #{entity.tbstatus}
 		)	</insert>
 		<insert id="insertByBatch" parameterType="java.util.List">
 		INSERT INTO ${tableName} (
-		title, pic, target_url, order_num, advertisement_type, status
+		title, pic, target_url, order_num, advertisement_type, tb_status
 		) VALUES 
 		<foreach collection="list" item="entity" index="index" separator=",">
-			(#{entity.title}, #{entity.pic}, #{entity.targetUrl}, #{entity.orderNum}, #{entity.advertisementType}, #{entity.status})
+			(#{entity.title}, #{entity.pic}, #{entity.targetUrl}, #{entity.orderNum}, #{entity.advertisementType}, #{entity.tbstatus})
 		</foreach>
 	</insert>
 		<update id="update">
 		UPDATE ${tableName} SET 
-		title=#{entity.title}, pic=#{entity.pic}, target_url=#{entity.targetUrl}, order_num=#{entity.orderNum}, advertisement_type=#{entity.advertisementType}, status=#{entity.status}
+		title=#{entity.title}, pic=#{entity.pic}, target_url=#{entity.targetUrl}, order_num=#{entity.orderNum}, advertisement_type=#{entity.advertisementType}, tb_status=#{entity.tbstatus}
 		 WHERE 
 		advertisement_id = #{entity.advertisementId}
 

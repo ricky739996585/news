@@ -9,7 +9,7 @@ public class AdvertisementTypeVo implements java.io.Serializable {
 	private Integer orderNum; // 顺序
 	private String createTime; // 创建时间
 	private String modifyTime; // 修改时间
-	private String status; // 状态:正常，正常；删除，删除;
+	private String tbstatus; // 状态:正常，正常；删除，删除;
 
 	public Integer getAdvertisementTypeId() {
 		return advertisementTypeId;
@@ -45,13 +45,14 @@ public class AdvertisementTypeVo implements java.io.Serializable {
 	public void setModifyTime(String modifyTime) {
 		this.modifyTime = modifyTime;
 	}
+	public String getTbstatus() {
+		return tbstatus;
+	}
+	public void setTbstatus(String tbstatus) {
+		this.tbstatus = tbstatus;
+	}
 
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
+	
 
 }
 

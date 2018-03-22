@@ -8,7 +8,7 @@
 		<result column="order_num" jdbcType="INTEGER" property="orderNum" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
-		<result column="status" jdbcType="CHAR" property="status" />
+		<result column="tb_status" jdbcType="CHAR" property="tbstatus" />
 	</resultMap>
 	<resultMap id="voResultMap" type="com.kjz.www.advertisement.vo.AdvertisementTypeVo">
 		<id column="advertisement_type_id" jdbcType="INTEGER" property="advertisementTypeId" />
@@ -16,29 +16,29 @@
 		<result column="order_num" jdbcType="INTEGER" property="orderNum" />
 		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
-		<result column="status" jdbcType="CHAR" property="status" />
+		<result column="tb_status" jdbcType="CHAR" property="tbstatus" />
 	</resultMap>
 	<sql id="baseColumnList">
-advertisement_type_id,type_name,order_num,create_time,modify_time,status	</sql>
+advertisement_type_id,type_name,order_num,create_time,modify_time,tb_status	</sql>
 	<sql id="voColumnList">
-advertisement_type_id,type_name,order_num,create_time,modify_time,status	</sql>
+advertisement_type_id,type_name,order_num,create_time,modify_time,tb_status	</sql>
 		<insert id="insert" useGeneratedKeys="true" keyProperty="entity.advertisementTypeId">
 		INSERT INTO ${tableName} (
-		type_name, order_num, status
+		type_name, order_num, tb_status
 		) VALUES (
-		#{entity.typeName}, #{entity.orderNum}, #{entity.status}
+		#{entity.typeName}, #{entity.orderNum}, #{entity.tbstatus}
 		)	</insert>
 		<insert id="insertByBatch" parameterType="java.util.List">
 		INSERT INTO ${tableName} (
-		type_name, order_num, status
+		type_name, order_num, tb_status
 		) VALUES 
 		<foreach collection="list" item="entity" index="index" separator=",">
-			(#{entity.typeName}, #{entity.orderNum}, #{entity.status})
+			(#{entity.typeName}, #{entity.orderNum}, #{entity.tbstatus})
 		</foreach>
 	</insert>
 		<update id="update">
 		UPDATE ${tableName} SET 
-		type_name=#{entity.typeName}, order_num=#{entity.orderNum}, status=#{entity.status}
+		type_name=#{entity.typeName}, order_num=#{entity.orderNum}, tb_status=#{entity.tbstatus}
 		 WHERE 
 		advertisement_type_id = #{entity.advertisementTypeId}
 

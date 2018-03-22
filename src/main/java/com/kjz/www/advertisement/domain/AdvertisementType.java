@@ -7,7 +7,7 @@ public class AdvertisementType implements java.io.Serializable {
 	private Integer advertisementTypeId; // 广告类型ID
 	private String typeName; // 类型名称
 	private Integer orderNum; // 顺序
-	private String status; // 状态:正常，正常；删除，删除;
+	private String tbstatus; // 状态:正常，正常；删除，删除;
 
 	public Integer getAdvertisementTypeId() {
 		return advertisementTypeId;
@@ -29,13 +29,14 @@ public class AdvertisementType implements java.io.Serializable {
 	public void setOrderNum(Integer orderNum) {
 		this.orderNum = orderNum;
 	}
+	public String getTbstatus() {
+		return tbstatus;
+	}
+	public void setTbstatus(String tbstatus) {
+		this.tbstatus = tbstatus;
+	}
 
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
+	
 
 }
 

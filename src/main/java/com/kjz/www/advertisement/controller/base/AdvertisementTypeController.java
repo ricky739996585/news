@@ -42,31 +42,31 @@ public class AdvertisementTypeController {
 
 	@RequestMapping(value = "/addOrEditAdvertisementType", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse addOrEditAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, String advertisementTypeId, @RequestParam(required = false) String typeName, @RequestParam(required = false) String orderNum, @RequestParam(required = false) String status) {
+	public WebResponse addOrEditAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, String advertisementTypeId, @RequestParam(required = false) String typeName, @RequestParam(required = false) String orderNum, @RequestParam(required = false) String tbstatus) {
 		if (advertisementTypeId == null || advertisementTypeId.length() == 0) {
-			return this.addAdvertisementType(request, response, session, typeName, orderNum, status);
+			return this.addAdvertisementType(request, response, session, typeName, orderNum, tbstatus);
 		} else {
-			return this.editAdvertisementType(request, response, session, advertisementTypeId, typeName, orderNum, status);
+			return this.editAdvertisementType(request, response, session, advertisementTypeId, typeName, orderNum, tbstatus);
 		}
 	}
 
 	@RequestMapping(value = "/addAdvertisementType", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse addAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, String typeName, String orderNum, String status) {
+	public WebResponse addAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, String typeName, String orderNum, String tbstatus) {
 		Object data = null;
 		String statusMsg = "";
 		Integer statusCode = 200;
 		Map<String, String> paramMap = new HashMap<String, String>();
 		paramMap.put("typeName", typeName);
 		paramMap.put("orderNum", orderNum);
-		paramMap.put("status", status);
+		paramMap.put("tbstatus", tbstatus);
 		data = paramMap;
-		if (typeName == null || "".equals(typeName.trim()) || orderNum == null || "".equals(orderNum.trim()) || status == null || "".equals(status.trim())) {
+		if (typeName == null || "".equals(typeName.trim()) || orderNum == null || "".equals(orderNum.trim()) || tbstatus == null || "".equals(tbstatus.trim())) {
 			statusMsg = " 参数为空错误！！！！";
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
 		}
-		if (typeName.length() > 200 || status.length() > 50) {
+		if (typeName.length() > 200 || tbstatus.length() > 50) {
 			statusMsg = " 参数长度过长错误！！！";
 			statusCode = 201;
 			return webResponse.getWebResponse(statusCode, statusMsg, data);
@@ -82,13 +82,13 @@ public class AdvertisementTypeController {
 		}
 
 		boolean isAdd = true;
-		return this.addOrEditAdvertisementType(request, response, session, data, advertisementType,typeName,orderNum,status, isAdd);
+		return this.addOrEditAdvertisementType(request, response, session, data, advertisementType,typeName,orderNum,tbstatus, isAdd);
 	}
 
 
 	@RequestMapping(value = "/editAdvertisementType", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	@ResponseBody
-	public WebResponse editAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, String advertisementTypeId, @RequestParam(required = false) String typeName, @RequestParam(required = false) String orderNum, @RequestParam(required = false) String status) {
+	public WebResponse editAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, String advertisementTypeId, @RequestParam(required = false) String typeName, @RequestParam(required = false) String orderNum, @RequestParam(required = false) String tbstatus) {
 		Object data = null;
 		String statusMsg = "";
 		Integer statusCode = 200;
@@ -96,7 +96,7 @@ public class AdvertisementTypeController {
 		paramMap.put("advertisementTypeId", advertisementTypeId);
 		paramMap.put("typeName", typeName);
 		paramMap.put("orderNum", orderNum);
-		paramMap.put("status", status);
+		paramMap.put("tbstatus", tbstatus);
 		data = paramMap;
 		if (advertisementTypeId == null || "".equals(advertisementTypeId.trim())) {
 			statusMsg = "未获得主键参数错误！！！";
@@ -121,11 +121,11 @@ public class AdvertisementTypeController {
 		}
 
 		boolean isAdd = false;
-		return this.addOrEditAdvertisementType(request, response, session, data, advertisementType,typeName,orderNum,status, isAdd);
+		return this.addOrEditAdvertisementType(request, response, session, data, advertisementType,typeName,orderNum,tbstatus, isAdd);
 	}
 
 
-private WebResponse addOrEditAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, AdvertisementType advertisementType, String typeName, String orderNum, String status, boolean isAdd) {
+private WebResponse addOrEditAdvertisementType(HttpServletRequest request, HttpServletResponse response, HttpSession session, Object data, AdvertisementType advertisementType, String typeName, String orderNum, String tbstatus, boolean isAdd) {
 		String statusMsg = "";
 		Integer statusCode = 200;
 		if (typeName != null && !("".equals(typeName.trim()))) {
@@ -146,13 +146,13 @@ private WebResponse addOrEditAdvertisementType(HttpServletRequest request, HttpS
 			orderNumNumeri = Integer.parseInt(orderNum);
 			advertisementType.setOrderNum(orderNumNumeri);
 		}
-		if (status != null && !("".equals(status.trim()))) {
-			if(status.length() > 50) {
+		if (tbstatus != null && !("".equals(tbstatus.trim()))) {
+			if(tbstatus.length() > 50) {
 				statusMsg = " 参数长度过长错误,status";
 				statusCode = 201;
 				return webResponse.getWebResponse(statusCode, statusMsg, data);
 			} 
-			advertisementType.setStatus(status);
+			advertisementType.setTbstatus(tbstatus);
 		}
 		if (isAdd) {
 			this.advertisementTypeService.insert(advertisementType);
