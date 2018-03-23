@@ -672,9 +672,10 @@ public class ArticleController {
                 //获得用户昵称
                 String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
                 json.put("userNickname", userNickname);
-                Article article=new Article();
-                BeanUtils.copyProperties(articlevo, article);
-                json.put("article",article);
+//                Article article=new Article();
+//                BeanUtils.copyProperties(articlevo, article);
+//                json.put("article",article);
+                json.put("article",articlevo);
 
                 //获得文章标签名字
                 Integer articleId =articlevo.getArticleId();//articleId
