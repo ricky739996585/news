@@ -5,6 +5,7 @@ public class Article implements java.io.Serializable {
 	private Integer articleId; // 文章编号
 	private Integer userId; // 用户编号
 	private String title; // 文章标题
+	private String author;//原作者
 	private String content; // 文章内容
 	private String preContent; // 预览内容
 	private Integer clicks; // 浏览次数
@@ -35,6 +36,12 @@ public class Article implements java.io.Serializable {
 		this.title = title;
 	}
 
+	public String getAuthor() {
+		return author;
+	}
+	public void setAuthor(String author) {
+		this.author = author;
+	}
 	public String getContent() {
 		return content;
 	}

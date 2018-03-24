@@ -7,6 +7,7 @@ public class ArticleVoFont implements java.io.Serializable {
 	private Integer articleId; // 文章ID
 	private Integer userId; // 用户ID
 	private String title; // 文章标题
+	private String author;//原作者
 	private String content; // 文章内容
 	private Integer clicks; // 浏览次数
 	private String typeName; // 文章类型
@@ -34,6 +35,12 @@ public class ArticleVoFont implements java.io.Serializable {
 		this.title = title;
 	}
 
+	public String getAuthor() {
+		return author;
+	}
+	public void setAuthor(String author) {
+		this.author = author;
+	}
 	public String getContent() {
 		return content;
 	}

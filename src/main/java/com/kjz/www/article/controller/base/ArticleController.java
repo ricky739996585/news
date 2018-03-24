@@ -316,14 +316,21 @@ public class ArticleController {
         ArticleVo articleVo = this.articleService.getById(articleIdNumNumeri);
         //有此文章
         if (articleVo != null && articleVo.getArticleId() > 0) {
-        	//获得用户昵称
-        	String nickname=this.userUtils.getUserById(articleVo.getUserId()).getNickname();
-        	articleVo.setClicks(articleVo.getClicks()+1);//浏览数+1
+        	//文章作者若为空，则用户昵称为作者
+        	if(articleVo.getAuthor().equals("") || articleVo.getAuthor() == null || articleVo.getAuthor().equalsIgnoreCase("null")){
+        		String nickname=this.userUtils.getUserById(articleVo.getUserId()).getNickname();
+        		articleVo.setAuthor(nickname);
+        	}
+        	//浏览数+1
+        	articleVo.setClicks(articleVo.getClicks()+1);
+        	Article article=new Article();
+        	BeanUtils.copyProperties(articleVo,article);
+        	this.articleService.update(article);
         	//获得文章标签名字
     		LinkedHashMap<String, String> articleTagscondition = new LinkedHashMap<String, String>();
     		articleTagscondition.put("article_id='"+articleIdNumNumeri+"'", "and");
     		  //获得文章标签中间表
-    		List<ArticleTagsVo> articleTagsList=this.articleTagsService.getList(articleTagscondition, 1, 10);
+    		List<ArticleTagsVo> articleTagsList=this.articleTagsService.getList(articleTagscondition, 1,8 );
     		    //获得标签列表中的tags_name By tags_id
     		List<Tags> tagsList=new LinkedList<Tags>();
     		//遍历中间表对象
@@ -336,7 +343,7 @@ public class ArticleController {
     		}
     		//json.put("tagsList", tagsList);
     		datamap.put("tagsList", tagsList);
-        	datamap.put("nickname", nickname);
+        	//datamap.put("nickname", nickname);//新闻模块文章的用户昵称更改为作者
             datamap.put("articleVo", articleVo);
             data = datamap;
             statusMsg = "获取单条数据成功！！！";
@@ -368,7 +375,7 @@ public class ArticleController {
     @ResponseBody
     public WebResponse getArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
                                       @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-                                      @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                      @RequestParam(defaultValue = "8", required = false) Integer pageSize,
                                       @RequestParam(defaultValue = "正常", required = false) String tbStatus,
                                       @RequestParam(required = false) String keyword,
                                       @RequestParam(defaultValue = "article_id", required = false) String order,
@@ -435,7 +442,7 @@ public class ArticleController {
     @ResponseBody
     public String getAdminArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
                                       @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-                                      @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                      @RequestParam(defaultValue = "8", required = false) Integer pageSize,
                                       @RequestParam(defaultValue = "正常", required = false) String tbStatus,
                                       @RequestParam(required = false) String keyword,
                                       @RequestParam(defaultValue = "article_id", required = false) String order,
@@ -611,7 +618,7 @@ public class ArticleController {
     @ResponseBody
     public WebResponse getNewsArticleList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
             @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-            @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+            @RequestParam(defaultValue = "8", required = false) Integer pageSize,
             @RequestParam(defaultValue = "正常", required = false) String tbStatus,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "article_id", required = false) String order,
@@ -623,7 +630,7 @@ public class ArticleController {
     private WebResponse getArticleTypeList(HttpServletRequest request, HttpServletResponse response, HttpSession session,
                                            @RequestParam String typeName,
                                            @RequestParam(defaultValue = "1", required = false) Integer pageNo,
-                                           @RequestParam(defaultValue = "10", required = false) Integer pageSize,
+                                           @RequestParam(defaultValue = "8", required = false) Integer pageSize,
                                            @RequestParam(defaultValue = "正常", required = false) String tbStatus,
                                            @RequestParam(required = false) String keyword,
                                            @RequestParam(required = false) String order,
@@ -666,19 +673,25 @@ public class ArticleController {
         int size = list.size();
         JSONArray jsonArray=new JSONArray();
         if (size > 0) {//列表不为空，遍历列表拿到ArticleVo对象中的articleId,userId List
-            for(ArticleVo articlevo:list){
+            for(ArticleVo articleVo:list){
 
                 JSONObject json=new JSONObject();
+                //文章作者若为空，则用户昵称为作者
+            	if(articleVo.getAuthor().equals("") || articleVo.getAuthor() == null || articleVo.getAuthor().equalsIgnoreCase("null")){
+            		String nickname=this.userUtils.getUserById(articleVo.getUserId()).getNickname();
+            		articleVo.setAuthor(nickname);
+            		//json.put("userNickname", userNickname);
+            	}
                 //获得用户昵称
-                String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
-                json.put("userNickname", userNickname);
+//                String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
+//                json.put("userNickname", userNickname);
 //                Article article=new Article();
 //                BeanUtils.copyProperties(articlevo, article);
 //                json.put("article",article);
-                json.put("article",articlevo);
+                json.put("article",articleVo);
 
                 //获得文章标签名字
-                Integer articleId =articlevo.getArticleId();//articleId
+                Integer articleId =articleVo.getArticleId();//articleId
                 LinkedHashMap<String, String> articleTagscondition = new LinkedHashMap<String, String>();
                 articleTagscondition.put("article_id='"+articleId+"'", "and");
                 //获得文章标签中间表
@@ -781,18 +794,24 @@ public class ArticleController {
         int size = list.size();
         JSONArray jsonArray=new JSONArray();
         if (size > 0) {//列表不为空，遍历列表拿到ArticleVo对象中的articleId,userId List
-            for(ArticleVo articlevo:list){
+            for(ArticleVo articleVo:list){
 
                 JSONObject json=new JSONObject();
-                //获得用户昵称
-                String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
-                json.put("userNickname", userNickname);
+//                //获得用户昵称
+//                String userNickname=this.userUtils.getUserById(articlevo.getUserId()).getNickname();//userId
+//                json.put("userNickname", userNickname);
+                //文章作者若为空，则用户昵称为作者
+            	if(articleVo.getAuthor().equals("") || articleVo.getAuthor() == null || articleVo.getAuthor().equalsIgnoreCase("null")){
+            		String nickname=this.userUtils.getUserById(articleVo.getUserId()).getNickname();
+            		articleVo.setAuthor(nickname);
+            		//json.put("userNickname", userNickname);
+            	}
                 Article article=new Article();
-                BeanUtils.copyProperties(articlevo, article);
+                BeanUtils.copyProperties(articleVo, article);
                 json.put("article",article);
 
                 //获得文章标签名字
-                Integer articleId =articlevo.getArticleId();//articleId
+                Integer articleId =articleVo.getArticleId();//articleId
                 LinkedHashMap<String, String> articleTagscondition = new LinkedHashMap<String, String>();
                 articleTagscondition.put("article_id='"+articleId+"'", "and");
                 //获得文章标签中间表
